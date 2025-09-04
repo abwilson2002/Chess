@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -73,7 +74,7 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         row = myPosition.getRow();
         col = myPosition.getColumn();
-        Collection<ChessMove> possibleMoves = null;
+        Collection<ChessMove> possibleMoves = new ArrayList<>();
 
         if (selection == PieceType.PAWN) {
             if (faction == ChessGame.TeamColor.WHITE) {
@@ -98,7 +99,25 @@ public class ChessPiece {
         } else if (selection == PieceType.KNIGHT) {
 
         } else if (selection == PieceType.KING) {
-
+            int i = -1;
+            int j = -1;
+            int possibleRow;
+            int possibleCol;
+            while (i < 2) {
+                while (j < 2) {
+                    if (i == 0 & j == 0) {
+                        j++;
+                    } else {
+                        possibleRow = row - i;
+                        possibleCol = col - j;
+                        if (possibleRow >= 1 & possibleRow <= 8 & possibleCol >= 1 & possibleCol <= 8) {
+                            possibleMoves.add(new ChessMove(myPosition, new ChessPosition(possibleRow, possibleCol), null));
+                        }
+                        j += 1;
+                    }
+                }
+                i += 1;
+            }
         } else if (selection == PieceType.QUEEN) {
             possibleMoves = linearChecks(possibleMoves);
             possibleMoves = diagonalChecks(possibleMoves);
