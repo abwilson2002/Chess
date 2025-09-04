@@ -92,18 +92,27 @@ public class ChessPiece {
                 }
             }
         } else if (selection == PieceType.ROOK) {
-
+            possibleMoves = linearChecks(possibleMoves);
         } else if (selection == PieceType.BISHOP) {
-
+            possibleMoves = diagonalChecks(possibleMoves);
         } else if (selection == PieceType.KNIGHT) {
 
         } else if (selection == PieceType.KING) {
 
         } else if (selection == PieceType.QUEEN) {
-
+            possibleMoves = linearChecks(possibleMoves);
+            possibleMoves = diagonalChecks(possibleMoves);
         } else {
             throw new RuntimeException("Not a valid piece");
         }
         return possibleMoves;
+    }
+
+    public Collection<ChessMove> diagonalChecks(Collection<ChessMove> possibleMoves) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves) {
+        throw new RuntimeException("Not implemented yet");
     }
 }
