@@ -13,8 +13,8 @@ import java.util.Objects;
  */
 public class ChessPiece {
 
-    PieceType selection = PieceType.PAWN;
-    ChessGame.TeamColor faction = ChessGame.TeamColor.WHITE;
+    PieceType selection;
+    ChessGame.TeamColor faction;
     int row;
     int col;
 
@@ -133,5 +133,9 @@ public class ChessPiece {
 
     public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves) {
         throw new RuntimeException("Not implemented yet");
+    }
+
+    public Boolean isSpaceFilled(ChessPosition position) {
+        return true;
     }
 }
