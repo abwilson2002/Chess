@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -17,7 +18,7 @@ public class ChessPiece {
     int col;
 
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         selection = type;
         faction = pieceColor;
     }
@@ -70,8 +71,39 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        row = myPosition.getRow();
+        col = myPosition.getColumn();
+        Collection<ChessMove> possibleMoves = null;
 
+        if (selection == PieceType.PAWN) {
+            if (faction == ChessGame.TeamColor.WHITE) {
+                if (row == 2) {
+                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col), null));
+                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 2, col), null));
+                } else {
+                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col), null));
+                }
+            } else { //Black team pawn moves
+                if (row == 7) {
+                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 1, col), null));
+                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 2, col), null));
+                } else {
+                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 1, col), null));
+                }
+            }
+        } else if (selection == PieceType.ROOK) {
 
-        throw new RuntimeException("Not implemented");
+        } else if (selection == PieceType.BISHOP) {
+
+        } else if (selection == PieceType.KNIGHT) {
+
+        } else if (selection == PieceType.KING) {
+
+        } else if (selection == PieceType.QUEEN) {
+
+        } else {
+            throw new RuntimeException("Not a valid piece");
+        }
+        return possibleMoves;
     }
 }
