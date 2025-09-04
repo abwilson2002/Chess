@@ -25,7 +25,7 @@ public class ChessPiece {
         PAWN
     }
 
-    public enum PieceColor {
+    public enum TeamColor {
         White,
         Black
     }
@@ -42,6 +42,7 @@ public class ChessPiece {
      */
     public PieceType getPieceType() {
         throw new RuntimeException("Not implemented");
+        return type;
     }
 
     /**
