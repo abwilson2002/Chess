@@ -10,7 +10,13 @@ import java.util.Collection;
  */
 public class ChessPiece {
 
+    PieceType selection = PieceType.PAWN;
+    ChessGame.TeamColor faction = ChessGame.TeamColor.WHITE;
+
+
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+        selection = type;
+        faction = pieceColor;
     }
 
     /**
@@ -25,23 +31,18 @@ public class ChessPiece {
         PAWN
     }
 
-    public enum TeamColor {
-        White,
-        Black
-    }
-
     /**
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
-        throw new RuntimeException("Not implemented");
+        return faction;
     }
 
     /**
      * @return which type of chess piece this piece is
      */
     public PieceType getPieceType() {
-        throw new RuntimeException("Not implemented");
+        return selection;
     }
 
     /**
