@@ -25,6 +25,11 @@ public class ChessPiece {
         PAWN
     }
 
+    public enum PieceColor {
+        White,
+        Black
+    }
+
     /**
      * @return Which team this chess piece belongs to
      */
