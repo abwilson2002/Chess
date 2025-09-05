@@ -77,26 +77,17 @@ public class ChessPiece {
         Collection<ChessMove> possibleMoves = new ArrayList<>();
 
         if (selection == PieceType.PAWN) {
-            if (faction == ChessGame.TeamColor.WHITE) {
-                if (row == 2) {
-                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col), null));
-                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 2, col), null));
-                } else {
-                    if (row == 7) {
-                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col), ChessPiece.PieceType.QUEEN));
-                    }
-                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col), null));
-                }
-            } else { //Black team pawn moves
-                if (row == 7) {
-                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 1, col), null));
-                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 2, col), null));
-                } else {
-                    if (row == 2) {
-                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 1, col), ChessPiece.PieceType.QUEEN));
-                    }
-                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 1, col), null));
-                }
+            int pawnBuffer = 1; //This will be the amount I change row for their movements
+            if (faction == ChessGame.TeamColor.BLACK) {
+                pawnBuffer = -1;
+            }
+            if (row == 2 & pawnBuffer == 1 || row == 7 & pawnBuffer == -1) {
+                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + pawnBuffer, col), null));
+                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + (pawnBuffer * 2), col), null));
+            } else if (row == 2 & pawnBuffer == -1 || row == 7 & pawnBuffer == 1) {
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + (pawnBuffer * 2), col), PieceType.QUEEN));
+            } else {
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + pawnBuffer, col), null));
             }
         } else if (selection == PieceType.ROOK) {
             possibleMoves = linearChecks(possibleMoves, myPosition);
@@ -138,14 +129,32 @@ public class ChessPiece {
     }
 
     public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition) {
-        for (int i = 1; i < 9; i++) {
-            if (i != row) {
+        for (int i = row + 1; i < 9; i++) {
+            if (isSpaceFilled(new ChessPosition(row, col))) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
+            } else {
+                i = 9;
             }
         }
-        for (int j = 1; j < 9; j++) {
-            if (j != col) {
-                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(j, col), null));
+        for (int i = row - 1; i > 0; i--) {
+            if (isSpaceFilled(new ChessPosition(row, col))) {
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
+            } else {
+                i = 0;
+            }
+        }
+        for (int j = col + 1; j < 9; j++) {
+            if (isSpaceFilled(new ChessPosition(row, col))) {
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, j), null));
+            } else {
+                j = 9;
+            }
+        }
+        for (int j = col - 1; j > 0; j--) {
+            if (isSpaceFilled(new ChessPosition(row, col))) {
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, j), null));
+            } else {
+                j = 0;
             }
         }
         return possibleMoves;

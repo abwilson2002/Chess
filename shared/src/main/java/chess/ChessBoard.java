@@ -10,7 +10,7 @@ import java.util.Dictionary;
  */
 public class ChessBoard {
 
-    Dictionary<ChessPosition, ChessPiece> allPieces;
+    public static Dictionary<ChessPosition, ChessPiece> allPieces;
 
     public ChessBoard() {
         
