@@ -82,6 +82,9 @@ public class ChessPiece {
                     possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col), null));
                     possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 2, col), null));
                 } else {
+                    if (row == 7) {
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col), ChessPiece.PieceType.QUEEN));
+                    }
                     possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col), null));
                 }
             } else { //Black team pawn moves
@@ -89,6 +92,9 @@ public class ChessPiece {
                     possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 1, col), null));
                     possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 2, col), null));
                 } else {
+                    if (row == 2) {
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 1, col), ChessPiece.PieceType.QUEEN));
+                    }
                     possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row - 1, col), null));
                 }
             }
@@ -146,6 +152,7 @@ public class ChessPiece {
     }
 
     public Boolean isSpaceFilled(ChessPosition position) {
-        return true;
+        ChessPiece piece = ChessBoard.allPieces.get(position);
+        return piece != null;
     }
 }
