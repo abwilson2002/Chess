@@ -164,4 +164,37 @@ public class ChessPiece {
         ChessPiece piece = board.allPieces.get(position);
         return piece != null;
     }
+
+    //This function will test whether I can get the check to just follow a direction given when called
+    public Collection<ChessMove> addMovesInDirection(Collection<ChessMove> possibleMoves, ChessPiece piece, int rowStart, int colStart, int rowChange, int colChange, ChessBoard board) {
+        ChessPosition startingPosition = new ChessPosition(rowStart, colStart);
+        Boolean ranIntoSomething = false;
+        int row = rowStart + rowChange;
+        int col = colStart + colChange;
+        ChessPosition checkedPosition = new ChessPosition(row, col);
+        while (!ranIntoSomething & withinBoard(row, col)) {
+            if (isSpaceFilled(checkedPosition, board)) {
+                if (board.allPieces.get(checkedPosition).getTeamColor() != getTeamColor()) {
+                    possibleMoves.add(new ChessMove(startingPosition, checkedPosition, null));
+                }
+                ranIntoSomething = true;
+            } else {
+                possibleMoves.add(new ChessMove(startingPosition, checkedPosition, null));
+                row += rowChange;
+                col += colChange;
+            }
+            checkedPosition = new ChessPosition(row, col);
+        }
+        return possibleMoves;
+    }
+
+    public Boolean withinBoard(int row, int col) {
+        if (row < 9 & row > 0) {
+            if (col < 9 & col > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
