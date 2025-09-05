@@ -1,5 +1,7 @@
 package chess;
 
+import java.util.Dictionary;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -7,6 +9,8 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
+
+    Dictionary<ChessPosition, ChessPiece> allPieces;
 
     public ChessBoard() {
         
@@ -19,7 +23,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        throw new RuntimeException("Not implemented");
+        allPieces.put(position, piece);
     }
 
     /**
@@ -30,7 +34,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        throw new RuntimeException("Not implemented");
+        return allPieces.get(position);
     }
 
     /**
@@ -38,6 +42,10 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        for (int i = 1; i < 9; i++) {
+            for (int j = 1; j < 9; j++) {
+                allPieces.remove(new ChessPosition(i, j));
+            }
+        }
     }
 }
