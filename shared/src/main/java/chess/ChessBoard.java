@@ -37,6 +37,20 @@ public class ChessBoard {
         return allPieces.get(position);
     }
 
+    public void movePiece(ChessPosition startPosition, ChessPosition endPosition, ChessPiece piece) {
+        ChessPiece targetLocation = getPiece(endPosition);
+        if (targetLocation != null) {
+            ChessPiece capturedPiece = allPieces.get(endPosition);  //I am keeping track of this if I need to use it later
+            allPieces.remove(endPosition);
+            ChessPiece movingPiece = allPieces.get(startPosition);
+            allPieces.put(endPosition, piece);
+            allPieces.remove(startPosition);
+        } else {
+            allPieces.put(endPosition, piece);
+            allPieces.remove(startPosition);
+        }
+    }
+
     /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)

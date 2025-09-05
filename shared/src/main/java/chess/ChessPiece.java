@@ -130,28 +130,28 @@ public class ChessPiece {
 
     public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
         for (int i = row + 1; i < 9; i++) {
-            if (isSpaceFilled(new ChessPosition(row, col), board)) {
+            if (isSpaceFilled(new ChessPosition(i, col), board)) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
             } else {
                 i = 9;
             }
         }
         for (int i = row - 1; i > 0; i--) {
-            if (isSpaceFilled(new ChessPosition(row, col), board)) {
+            if (isSpaceFilled(new ChessPosition(i, col), board)) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
             } else {
                 i = 0;
             }
         }
         for (int j = col + 1; j < 9; j++) {
-            if (isSpaceFilled(new ChessPosition(row, col), board)) {
+            if (isSpaceFilled(new ChessPosition(row, j), board)) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, j), null));
             } else {
                 j = 9;
             }
         }
         for (int j = col - 1; j > 0; j--) {
-            if (isSpaceFilled(new ChessPosition(row, col), board)) {
+            if (isSpaceFilled(new ChessPosition(row, j), board)) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, j), null));
             } else {
                 j = 0;
