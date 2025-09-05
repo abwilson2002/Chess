@@ -93,9 +93,9 @@ public class ChessPiece {
                 }
             }
         } else if (selection == PieceType.ROOK) {
-            possibleMoves = linearChecks(possibleMoves);
+            possibleMoves = linearChecks(possibleMoves, myPosition);
         } else if (selection == PieceType.BISHOP) {
-            possibleMoves = diagonalChecks(possibleMoves);
+            possibleMoves = diagonalChecks(possibleMoves, myPosition);
         } else if (selection == PieceType.KNIGHT) {
 
         } else if (selection == PieceType.KING) {
@@ -119,20 +119,30 @@ public class ChessPiece {
                 i += 1;
             }
         } else if (selection == PieceType.QUEEN) {
-            possibleMoves = linearChecks(possibleMoves);
-            possibleMoves = diagonalChecks(possibleMoves);
+            possibleMoves = linearChecks(possibleMoves, myPosition);
+            possibleMoves = diagonalChecks(possibleMoves, myPosition);
         } else {
             throw new RuntimeException("Not a valid piece");
         }
         return possibleMoves;
     }
 
-    public Collection<ChessMove> diagonalChecks(Collection<ChessMove> possibleMoves) {
+    public Collection<ChessMove> diagonalChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition) {
         throw new RuntimeException("Not implemented yet");
     }
 
-    public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves) {
-        throw new RuntimeException("Not implemented yet");
+    public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition) {
+        for (int i = 1; i < 9; i++) {
+            if (i != row) {
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
+            }
+        }
+        for (int j = 1; j < 9; j++) {
+            if (j != col) {
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(j, col), null));
+            }
+        }
+        return possibleMoves;
     }
 
     public Boolean isSpaceFilled(ChessPosition position) {
