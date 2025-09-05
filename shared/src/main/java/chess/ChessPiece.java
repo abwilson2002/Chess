@@ -90,9 +90,9 @@ public class ChessPiece {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + pawnBuffer, col), null));
             }
         } else if (selection == PieceType.ROOK) {
-            possibleMoves = linearChecks(possibleMoves, myPosition);
+            possibleMoves = linearChecks(possibleMoves, myPosition, board);
         } else if (selection == PieceType.BISHOP) {
-            possibleMoves = diagonalChecks(possibleMoves, myPosition);
+            possibleMoves = diagonalChecks(possibleMoves, myPosition, board);
         } else if (selection == PieceType.KNIGHT) {
 
         } else if (selection == PieceType.KING) {
@@ -116,42 +116,42 @@ public class ChessPiece {
                 i += 1;
             }
         } else if (selection == PieceType.QUEEN) {
-            possibleMoves = linearChecks(possibleMoves, myPosition);
-            possibleMoves = diagonalChecks(possibleMoves, myPosition);
+            possibleMoves = linearChecks(possibleMoves, myPosition, board);
+            possibleMoves = diagonalChecks(possibleMoves, myPosition, board);
         } else {
             throw new RuntimeException("Not a valid piece");
         }
         return possibleMoves;
     }
 
-    public Collection<ChessMove> diagonalChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition) {
+    public Collection<ChessMove> diagonalChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
         throw new RuntimeException("Not implemented yet");
     }
 
-    public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition) {
+    public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
         for (int i = row + 1; i < 9; i++) {
-            if (isSpaceFilled(new ChessPosition(row, col))) {
+            if (isSpaceFilled(new ChessPosition(row, col), board)) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
             } else {
                 i = 9;
             }
         }
         for (int i = row - 1; i > 0; i--) {
-            if (isSpaceFilled(new ChessPosition(row, col))) {
+            if (isSpaceFilled(new ChessPosition(row, col), board)) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
             } else {
                 i = 0;
             }
         }
         for (int j = col + 1; j < 9; j++) {
-            if (isSpaceFilled(new ChessPosition(row, col))) {
+            if (isSpaceFilled(new ChessPosition(row, col), board)) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, j), null));
             } else {
                 j = 9;
             }
         }
         for (int j = col - 1; j > 0; j--) {
-            if (isSpaceFilled(new ChessPosition(row, col))) {
+            if (isSpaceFilled(new ChessPosition(row, col), board)) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, j), null));
             } else {
                 j = 0;
@@ -160,8 +160,8 @@ public class ChessPiece {
         return possibleMoves;
     }
 
-    public Boolean isSpaceFilled(ChessPosition position) {
-        ChessPiece piece = ChessBoard.allPieces.get(position);
+    public Boolean isSpaceFilled(ChessPosition position, ChessBoard board) {
+        ChessPiece piece = board.allPieces.get(position);
         return piece != null;
     }
 }
