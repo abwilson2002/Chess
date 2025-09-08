@@ -82,17 +82,17 @@ public class ChessPiece {
                 pawnBuffer = -1;
             }
             if (row == 2 & pawnBuffer == 1 || row == 7 & pawnBuffer == -1) {
-                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + pawnBuffer, col), null));
-                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + (pawnBuffer * 2), col), null));
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + pawnBuffer, col), null));
+                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + (pawnBuffer * 2), col), null));
             } else if (row == 2 & pawnBuffer == -1 || row == 7 & pawnBuffer == 1) {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + (pawnBuffer * 2), col), PieceType.QUEEN));
             } else {
                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + pawnBuffer, col), null));
             }
         } else if (selection == PieceType.ROOK) {
-            possibleMoves = linearChecks(possibleMoves, myPosition, board);
+                possibleMoves = linearChecks(possibleMoves, myPosition, board);
         } else if (selection == PieceType.BISHOP) {
-            possibleMoves = diagonalChecks(possibleMoves, myPosition, board);
+                possibleMoves = diagonalChecks(possibleMoves, myPosition, board);
         } else if (selection == PieceType.KNIGHT) {
 
         } else if (selection == PieceType.KING) {
@@ -107,7 +107,7 @@ public class ChessPiece {
                     } else {
                         possibleRow = row - i;
                         possibleCol = col - j;
-                        if (possibleRow >= 1 & possibleRow <= 8 & possibleCol >= 1 & possibleCol <= 8) {
+                        if (withinBoard(i, j)) {
                             possibleMoves.add(new ChessMove(myPosition, new ChessPosition(possibleRow, possibleCol), null));
                         }
                         j += 1;
@@ -125,37 +125,20 @@ public class ChessPiece {
     }
 
     public Collection<ChessMove> diagonalChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
-        throw new RuntimeException("Not implemented yet");
+        for (int i = -1; i < 2; i += 2) {
+            for (int j = -1; j < 2; j += 2) {
+                possibleMoves = addMovesInDirection(possibleMoves, myPosition.getRow(), myPosition.getColumn(), i, j, board);
+            }
+        }
+        return possibleMoves;
     }
 
     public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
-        for (int i = row + 1; i < 9; i++) {
-            if (isSpaceFilled(new ChessPosition(i, col), board)) {
-                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
-            } else {
-                i = 9;
-            }
+        for (int i = -1; i < 2; i += 2) {
+            possibleMoves = addMovesInDirection(possibleMoves, myPosition.getRow(), myPosition.getColumn(), i, 0, board);
         }
-        for (int i = row - 1; i > 0; i--) {
-            if (isSpaceFilled(new ChessPosition(i, col), board)) {
-                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(i, col), null));
-            } else {
-                i = 0;
-            }
-        }
-        for (int j = col + 1; j < 9; j++) {
-            if (isSpaceFilled(new ChessPosition(row, j), board)) {
-                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, j), null));
-            } else {
-                j = 9;
-            }
-        }
-        for (int j = col - 1; j > 0; j--) {
-            if (isSpaceFilled(new ChessPosition(row, j), board)) {
-                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, j), null));
-            } else {
-                j = 0;
-            }
+        for (int j = -1; j < 2; j += 2) {
+            possibleMoves = addMovesInDirection(possibleMoves, myPosition.getRow(), myPosition.getColumn(), 0, j, board);
         }
         return possibleMoves;
     }
@@ -166,7 +149,7 @@ public class ChessPiece {
     }
 
     //This function will test whether I can get the check to just follow a direction given when called
-    public Collection<ChessMove> addMovesInDirection(Collection<ChessMove> possibleMoves, ChessPiece piece, int rowStart, int colStart, int rowChange, int colChange, ChessBoard board) {
+    public Collection<ChessMove> addMovesInDirection(Collection<ChessMove> possibleMoves, int rowStart, int colStart, int rowChange, int colChange, ChessBoard board) {
         ChessPosition startingPosition = new ChessPosition(rowStart, colStart);
         Boolean ranIntoSomething = false;
         int row = rowStart + rowChange;
