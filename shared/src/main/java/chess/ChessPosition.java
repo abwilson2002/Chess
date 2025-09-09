@@ -10,8 +10,8 @@ import java.util.Objects;
  */
 public class ChessPosition {
 
-    int letter = 0;
-    int number = 0;
+    int letter;
+    int number;
 
     public ChessPosition(int row, int col) {
         letter = col;
