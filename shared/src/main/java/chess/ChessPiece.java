@@ -103,7 +103,6 @@ public class ChessPiece {
                     possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + pawnBuffer, col), null));
                 }
             }
-
             for (int i = -1; i < 2; i += 2) {
                 var diagonalSpot = new ChessPosition(row + pawnBuffer, col + i);
                 if (isSpaceFilled(diagonalSpot, board)) {
@@ -144,10 +143,10 @@ public class ChessPiece {
                 }
         } else if (selection == PieceType.KING) {
             int i = -1;
-            int j = -1;
             int possibleRow;
             int possibleCol;
             while (i < 2) {
+                int j = -1;
                 while (j < 2) {
                     if (i == 0 & j == 0) {
                         j++;
@@ -155,10 +154,8 @@ public class ChessPiece {
                         possibleRow = row - i;
                         possibleCol = col - j;
                         if (withinBoard(possibleRow, possibleCol)) {
-                            if (isSpaceFilled(new ChessPosition(possibleRow, possibleCol), board)) {
-                                if (isSpaceFilledByEnemy(new ChessPosition(possibleRow, possibleCol), board)) {
-                                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(possibleRow, possibleCol), null));
-                                }
+                            if (isSpaceFilledByEnemy(new ChessPosition(possibleRow, possibleCol), board) || !isSpaceFilled(new ChessPosition(possibleRow, possibleCol), board)) {
+                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(possibleRow, possibleCol), null));
                             }
                         }
                         j += 1;
@@ -166,6 +163,7 @@ public class ChessPiece {
                 }
                 i += 1;
             }
+            var filler = 0; //This line exists so I can set it as a breakpoint to debug King moves
         } else if (selection == PieceType.QUEEN) {
             possibleMoves = linearChecks(possibleMoves, myPosition, board);
             possibleMoves = diagonalChecks(possibleMoves, myPosition, board);
@@ -201,7 +199,10 @@ public class ChessPiece {
 
     public Boolean isSpaceFilledByEnemy(ChessPosition position, ChessBoard board) {
         ChessPiece piece = board.allPieces.get(position);
-        return (piece.getTeamColor() == this.getTeamColor());
+        if (piece == null) {
+             return true;
+        }
+        return (piece.getTeamColor() != this.getTeamColor());
     }
 
     //This function will test whether I can get the check to just follow a direction given when called
