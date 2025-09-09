@@ -57,4 +57,13 @@ public class ChessMove {
     public int hashCode() {
         return Objects.hash(pawnUpgrade, start, destination);
     }
+
+    @Override
+    public String toString() {
+        return "ChessMove{" +
+                "pawnUpgrade=" + pawnUpgrade +
+                ", start=" + start +
+                ", destination=" + destination +
+                '}';
+    }
 }

@@ -237,4 +237,14 @@ public class ChessPiece {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "ChessPiece{" +
+                "selection=" + selection +
+                ", faction=" + faction +
+                ", row=" + row +
+                ", col=" + col +
+                '}';
+    }
 }
