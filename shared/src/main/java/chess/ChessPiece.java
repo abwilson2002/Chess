@@ -107,7 +107,7 @@ public class ChessPiece {
             for (int i = -1; i < 2; i += 2) {
                 var diagonalSpot = new ChessPosition(row + pawnBuffer, col + i);
                 if (isSpaceFilled(diagonalSpot, board)) {
-                    if (board.getPiece(diagonalSpot).getTeamColor() != this.getTeamColor()) {
+                    if (isSpaceFilledByEnemy(diagonalSpot, board)) {
                         if (row + pawnBuffer == 1 || row + pawnBuffer == 8) {
                             possibleMoves.add(new ChessMove(myPosition, diagonalSpot, PieceType.QUEEN));
                             possibleMoves.add(new ChessMove(myPosition, diagonalSpot, PieceType.BISHOP));
@@ -128,8 +128,16 @@ public class ChessPiece {
             int holder2 = 2;  //These two integers represent the changes in row and column for Knight movement
                 for (int i = -1; i < 2; i += 2) {
                     for (int j = -1; j < 2; j += 2) {
-                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder1, col + holder2), null));
-                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder2, col + holder1), null));
+                        if (isSpaceFilled(new ChessPosition(row + holder1, col + holder2), board)) {
+                            if (isSpaceFilledByEnemy(new ChessPosition(row + holder1, col + holder2), board)) {
+                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder1, col + holder2), null));
+                            }
+                        }
+                        if (isSpaceFilled(new ChessPosition(row + holder2, col + holder1), board)) {
+                            if (isSpaceFilledByEnemy(new ChessPosition(row + holder2, col + holder1), board)) {
+                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder2, col + holder1), null));
+                            }
+                        }
                         holder2 *= j;
                     }
                     holder1 *= i;
@@ -146,8 +154,12 @@ public class ChessPiece {
                     } else {
                         possibleRow = row - i;
                         possibleCol = col - j;
-                        if (withinBoard(i, j)) {
-                            possibleMoves.add(new ChessMove(myPosition, new ChessPosition(possibleRow, possibleCol), null));
+                        if (withinBoard(possibleRow, possibleCol)) {
+                            if (isSpaceFilled(new ChessPosition(possibleRow, possibleCol), board)) {
+                                if (isSpaceFilledByEnemy(new ChessPosition(possibleRow, possibleCol), board)) {
+                                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(possibleRow, possibleCol), null));
+                                }
+                            }
                         }
                         j += 1;
                     }
@@ -185,6 +197,11 @@ public class ChessPiece {
     public Boolean isSpaceFilled(ChessPosition position, ChessBoard board) {
         ChessPiece piece = board.allPieces.get(position);
         return piece != null;
+    }
+
+    public Boolean isSpaceFilledByEnemy(ChessPosition position, ChessBoard board) {
+        ChessPiece piece = board.allPieces.get(position);
+        return (piece.getTeamColor() == this.getTeamColor());
     }
 
     //This function will test whether I can get the check to just follow a direction given when called
