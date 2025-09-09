@@ -94,7 +94,16 @@ public class ChessPiece {
         } else if (selection == PieceType.BISHOP) {
                 possibleMoves = diagonalChecks(possibleMoves, myPosition, board);
         } else if (selection == PieceType.KNIGHT) {
-
+            int holder1 = 1;
+            int holder2 = 2;  //These two integers represent the changes in row and column for Knight movement
+                for (int i = -1; i < 2; i += 2) {
+                    for (int j = -1; j < 2; j += 2) {
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder1, col + holder2), null));
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder2, col + holder1), null));
+                        holder2 *= j;
+                    }
+                    holder1 *= i;
+                }
         } else if (selection == PieceType.KING) {
             int i = -1;
             int j = -1;
