@@ -131,9 +131,17 @@ public class ChessPiece {
                             if (isSpaceFilledByEnemy(new ChessPosition(row + holder1, col + holder2), board)) {
                                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder1, col + holder2), null));
                             }
+                        } else {
+                            if (withinBoard(row + holder1, col + holder2)) {
+                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder1, col + holder2), null));
+                            }
                         }
                         if (isSpaceFilled(new ChessPosition(row + holder2, col + holder1), board)) {
                             if (isSpaceFilledByEnemy(new ChessPosition(row + holder2, col + holder1), board)) {
+                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder2, col + holder1), null));
+                            }
+                        } else {
+                            if (withinBoard(row + holder2, col + holder1)) {
                                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + holder2, col + holder1), null));
                             }
                         }

@@ -48,5 +48,13 @@ public class ChessPosition {
     public int hashCode() {
         return Objects.hash(letter, number);
     }
+
+    @Override
+    public String toString() {
+        return "ChessPosition{" +
+                "letter=" + letter +
+                ", number=" + number +
+                '}';
+    }
 }
 
