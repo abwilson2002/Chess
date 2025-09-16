@@ -17,6 +17,8 @@ public class ChessPiece {
     ChessGame.TeamColor faction;
     int row;
     int col;
+    public boolean rookMoved = false;
+    public boolean kingMoved = false;
 
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
@@ -30,12 +32,20 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return row == that.row && col == that.col && selection == that.selection && faction == that.faction;
+        return row == that.row && col == that.col && rookMoved == that.rookMoved && kingMoved == that.kingMoved && selection == that.selection && faction == that.faction;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(selection, faction, row, col);
+        return Objects.hash(selection, faction, row, col, rookMoved, kingMoved);
+    }
+
+    @Override
+    public String toString() {
+        return "ChessPiece{" +
+                "selection=" + selection +
+                ", faction=" + faction +
+                '}';
     }
 
     /**
@@ -82,7 +92,7 @@ public class ChessPiece {
                 pawnBuffer = -1;
             }
             if (row == 2 & pawnBuffer == 1 || row == 7 & pawnBuffer == -1) {
-                Boolean blocked = false;
+                boolean blocked = false;
                 if (!isSpaceFilled(new ChessPosition(row + pawnBuffer, col), board)) {
                     possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row + pawnBuffer, col), null));
                 } else {
@@ -171,7 +181,7 @@ public class ChessPiece {
                 }
                 i += 1;
             }
-            var filler = 0; //This line exists so I can set it as a breakpoint to debug King moves
+
         } else if (selection == PieceType.QUEEN) {
             possibleMoves = linearChecks(possibleMoves, myPosition, board);
             possibleMoves = diagonalChecks(possibleMoves, myPosition, board);
@@ -246,13 +256,4 @@ public class ChessPiece {
         return false;
     }
 
-    @Override
-    public String toString() {
-        return "ChessPiece{" +
-                "selection=" + selection +
-                ", faction=" + faction +
-                ", row=" + row +
-                ", col=" + col +
-                '}';
-    }
 }

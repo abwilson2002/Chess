@@ -52,13 +52,9 @@ public class ChessGame {
 
 
     public Collection<ChessMove> whiteTeamsMoves() {
-        Collection<ChessMove> whiteMove = new ArrayList<>();
-        Collection<ChessPiece> whitePieces = new ArrayList<>();
-        for (ChessPiece piece : whitePieces) {
+        Set<ChessMove> whiteMoves = new HashSet<>();
 
-        }
-
-        return whiteMove;
+        return whiteMoves;
     }
 
 

@@ -15,6 +15,9 @@ import chess.ChessPiece.PieceType;
 public class ChessBoard {
 
     public Map<ChessPosition, ChessPiece> allPieces = new HashMap<>();
+    boolean pawnDoubleMove = false;
+    boolean whiteKingMoved = false;
+    boolean blackKingMoved = false;
 
     public ChessBoard() {
     }
