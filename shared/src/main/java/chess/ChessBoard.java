@@ -15,9 +15,8 @@ import chess.ChessPiece.PieceType;
 public class ChessBoard {
 
     public Map<ChessPosition, ChessPiece> allPieces = new HashMap<>();
-    boolean pawnDoubleMove = false;
-    boolean whiteKingMoved = false;
-    boolean blackKingMoved = false;
+    boolean whitePawnDoubleMove = false;
+    boolean blackPawnDoubleMove = false;
 
     public ChessBoard() {
     }
@@ -28,12 +27,12 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return Objects.equals(allPieces, that.allPieces);
+        return whitePawnDoubleMove == that.whitePawnDoubleMove && blackPawnDoubleMove == that.blackPawnDoubleMove && Objects.equals(allPieces, that.allPieces);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(allPieces);
+        return Objects.hash(allPieces, whitePawnDoubleMove, blackPawnDoubleMove);
     }
 
     /**
@@ -57,19 +56,6 @@ public class ChessBoard {
         return allPieces.get(position);
     }
 
-    public void movePiece(ChessPosition startPosition, ChessPosition endPosition, ChessPiece piece) {
-        ChessPiece targetLocation = getPiece(endPosition);
-        if (targetLocation != null) {
-            ChessPiece capturedPiece = allPieces.get(endPosition);  //I am keeping track of this if I need to use it later
-            allPieces.remove(endPosition);
-            ChessPiece movingPiece = allPieces.get(startPosition);
-            allPieces.put(endPosition, piece);
-            allPieces.remove(startPosition);
-        } else {
-            allPieces.put(endPosition, piece);
-            allPieces.remove(startPosition);
-        }
-    }
 
     /**
      * Sets the board to the default starting board

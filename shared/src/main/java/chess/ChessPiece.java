@@ -19,6 +19,7 @@ public class ChessPiece {
     int col;
     public boolean rookMoved = false;
     public boolean kingMoved = false;
+    public boolean pawnMoved = false;
 
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
@@ -32,12 +33,12 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return row == that.row && col == that.col && rookMoved == that.rookMoved && kingMoved == that.kingMoved && selection == that.selection && faction == that.faction;
+        return row == that.row && col == that.col && rookMoved == that.rookMoved && kingMoved == that.kingMoved && selection == that.selection && faction == that.faction && pawnMoved == that.pawnMoved;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(selection, faction, row, col, rookMoved, kingMoved);
+        return Objects.hash(selection, faction, row, col, rookMoved, kingMoved, pawnMoved);
     }
 
     @Override
@@ -128,6 +129,9 @@ public class ChessPiece {
                     }
                 }
             }
+            /*if (((pawnBuffer == 1) & board.blackPawnDoubleMove) || (pawnBuffer == -1) & board.whitePawnDoubleMove) {
+
+            }*/
         } else if (selection == PieceType.ROOK) {
                 possibleMoves = linearChecks(possibleMoves, myPosition, board);
         } else if (selection == PieceType.BISHOP) {
@@ -181,7 +185,20 @@ public class ChessPiece {
                 }
                 i += 1;
             }
-
+            if (!kingMoved) {
+                if (!board.allPieces.get(new ChessPosition(row, 1)).rookMoved){
+                    if (board.allPieces.get(new ChessPosition(row, 4)) == null & board.allPieces.get(new ChessPosition(row, 3)) == null & board.allPieces.get(new ChessPosition(row, 2)) == null) {
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
+                        possibleMoves.add(new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 4), null));
+                    }
+                }
+                if (!board.allPieces.get(new ChessPosition(row, 8)).rookMoved){
+                    if (board.allPieces.get(new ChessPosition(row, 7)) == null & board.allPieces.get(new ChessPosition(row, 6)) == null) {
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 7), null));
+                        possibleMoves.add(new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6), null));
+                    }
+                }
+            }
         } else if (selection == PieceType.QUEEN) {
             possibleMoves = linearChecks(possibleMoves, myPosition, board);
             possibleMoves = diagonalChecks(possibleMoves, myPosition, board);

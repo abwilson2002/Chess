@@ -3,6 +3,8 @@ package chess;
 import java.util.Collection;
 import java.util.*;
 
+import static java.lang.Math.abs;
+
 /**
  * For a class that can manage a chess game, making moves on a board
  * <p>
@@ -13,6 +15,7 @@ public class ChessGame {
 
     Boolean isWhiteTurn;
     ChessBoard board;
+    public ChessPosition enPassantPosition;
 
     public ChessGame() {
         isWhiteTurn = true;
@@ -83,6 +86,24 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         throw new RuntimeException("Not implemented");
+        if (board.allPieces.get(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+            board.allPieces.get(move.getStartPosition()).kingMoved = true;
+        } else if (board.allPieces.get(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.ROOK) {
+            board.allPieces.get(move.getStartPosition()).rookMoved = true;
+        } else if (board.allPieces.get(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.PAWN) {
+            if (abs((board.allPieces.get(move.getStartPosition()).row) - (board.allPieces.get(move.getEndPosition()).row)) == 2) {
+                if (getTeamTurn() == TeamColor.WHITE) {
+                    board.whitePawnDoubleMove = true;
+                } else {
+                    board.blackPawnDoubleMove = true;
+                }
+                enPassantPosition = move.getEndPosition();
+            } else {
+                board.whitePawnDoubleMove = false;
+                board.blackPawnDoubleMove = false;
+                enPassantPosition = null;
+            }
+        }
     }
 
     /**
