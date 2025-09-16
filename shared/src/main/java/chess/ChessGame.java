@@ -15,7 +15,7 @@ public class ChessGame {
 
     Boolean isWhiteTurn;
     ChessBoard board;
-    public ChessPosition enPassantPosition;
+
 
     public ChessGame() {
         isWhiteTurn = true;
@@ -89,24 +89,42 @@ public class ChessGame {
         ChessPosition end = move.getEndPosition();
         board.allPieces.put(move.getEndPosition(), movingPiece);
         board.allPieces.remove(move.getStartPosition());
+
+        //Castling Moves
         if (movingPiece.getPieceType() == ChessPiece.PieceType.KING) {
-            movingPiece.kingMoved = true;
-        } else if (movingPiece.getPieceType() == ChessPiece.PieceType.ROOK) {
-            movingPiece.rookMoved = true;
-        } else if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
-            if (abs((movingPiece.row) - (end.getRow())) == 2) {
-                if (getTeamTurn() == TeamColor.WHITE) {
-                    board.whitePawnDoubleMove = true;
+            int movingRow = 8;
+            ChessGame.TeamColor side = ChessGame.TeamColor.WHITE;
+            if (movingPiece.getTeamColor() == TeamColor.BLACK) {
+                movingRow = 1;
+                side = ChessGame.TeamColor.BLACK;
+            }
+            if (!movingPiece.moved) {
+                ChessPiece movingRook = new ChessPiece(side, ChessPiece.PieceType.ROOK);
+                if (move.getStartPosition().getColumn() - end.getColumn() == 2) {
+                    board.allPieces.put(new ChessPosition(movingRow, 4), new ChessPiece(side, ChessPiece.PieceType.ROOK));
+                    board.allPieces.remove(new ChessPosition(movingRow, 1));
                 } else {
-                    board.blackPawnDoubleMove = true;
+                    board.allPieces.put(new ChessPosition(movingRow, 6), movingRook);
+                    board.allPieces.remove(new ChessPosition(movingRow, 8));
                 }
-                enPassantPosition = move.getEndPosition();
-            } else {
-                board.whitePawnDoubleMove = false;
-                board.blackPawnDoubleMove = false;
-                enPassantPosition = null;
+                movingRook.moved = true;
             }
         }
+
+        //En Passant Moves
+        if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN & abs((movingPiece.row) - (end.getRow())) == 2) {
+            if (getTeamTurn() == TeamColor.WHITE) {
+                board.whitePawnDoubleMove = true;
+            } else {
+                board.blackPawnDoubleMove = true;
+            }
+            board.enPassantPosition = move.getEndPosition();
+        } else {
+            board.whitePawnDoubleMove = false;
+            board.blackPawnDoubleMove = false;
+            board.enPassantPosition = null;
+        }
+        movingPiece.moved = true;
     }
 
     /**
@@ -147,7 +165,7 @@ public class ChessGame {
      */
     public void setBoard(ChessBoard board) {
         this.board = board;
-        board.resetBoard();
+        this.board.resetBoard();
     }
 
     /**

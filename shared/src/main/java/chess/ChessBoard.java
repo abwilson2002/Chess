@@ -17,6 +17,7 @@ public class ChessBoard {
     public Map<ChessPosition, ChessPiece> allPieces = new HashMap<>();
     boolean whitePawnDoubleMove = false;
     boolean blackPawnDoubleMove = false;
+    public ChessPosition enPassantPosition;
 
     public ChessBoard() {
     }
