@@ -85,13 +85,16 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
-        if (board.allPieces.get(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.KING) {
-            board.allPieces.get(move.getStartPosition()).kingMoved = true;
-        } else if (board.allPieces.get(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.ROOK) {
-            board.allPieces.get(move.getStartPosition()).rookMoved = true;
-        } else if (board.allPieces.get(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.PAWN) {
-            if (abs((board.allPieces.get(move.getStartPosition()).row) - (board.allPieces.get(move.getEndPosition()).row)) == 2) {
+        ChessPiece movingPiece = board.allPieces.get(move.getStartPosition());
+        ChessPosition end = move.getEndPosition();
+        board.allPieces.put(move.getEndPosition(), movingPiece);
+        board.allPieces.remove(move.getStartPosition());
+        if (movingPiece.getPieceType() == ChessPiece.PieceType.KING) {
+            movingPiece.kingMoved = true;
+        } else if (movingPiece.getPieceType() == ChessPiece.PieceType.ROOK) {
+            movingPiece.rookMoved = true;
+        } else if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+            if (abs((movingPiece.row) - (end.getRow())) == 2) {
                 if (getTeamTurn() == TeamColor.WHITE) {
                     board.whitePawnDoubleMove = true;
                 } else {

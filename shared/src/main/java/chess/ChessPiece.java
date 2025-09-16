@@ -2,7 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.Objects;
 
 /**
@@ -85,7 +85,7 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         row = myPosition.getRow();
         col = myPosition.getColumn();
-        Collection<ChessMove> possibleMoves = new ArrayList<>();
+        Set<ChessMove> possibleMoves = new HashSet<>();
 
         if (selection == PieceType.PAWN) {
             int pawnBuffer = 1; //This will help me choose the direction I change row for pawn movements
@@ -208,7 +208,7 @@ public class ChessPiece {
         return possibleMoves;
     }
 
-    public Collection<ChessMove> diagonalChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
+    public Set<ChessMove> diagonalChecks(Set<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
         for (int i = -1; i < 2; i += 2) {
             for (int j = -1; j < 2; j += 2) {
                 possibleMoves = addMovesInDirection(possibleMoves, myPosition.getRow(), myPosition.getColumn(), i, j, board);
@@ -217,7 +217,7 @@ public class ChessPiece {
         return possibleMoves;
     }
 
-    public Collection<ChessMove> linearChecks(Collection<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
+    public Set<ChessMove> linearChecks(Set<ChessMove> possibleMoves, ChessPosition myPosition, ChessBoard board) {
         for (int i = -1; i < 2; i += 2) {
             possibleMoves = addMovesInDirection(possibleMoves, myPosition.getRow(), myPosition.getColumn(), i, 0, board);
         }
@@ -233,6 +233,9 @@ public class ChessPiece {
     }
 
     public Boolean isSpaceFilledByEnemy(ChessPosition position, ChessBoard board) {
+        if (!isSpaceFilled(position, board)) {
+            return false;
+        }
         ChessPiece piece = board.allPieces.get(position);
         if (piece == null) {
              return true;
@@ -241,7 +244,7 @@ public class ChessPiece {
     }
 
     //This function will test whether I can get the check to just follow a direction given when called
-    public Collection<ChessMove> addMovesInDirection(Collection<ChessMove> possibleMoves, int rowStart, int colStart, int rowChange, int colChange, ChessBoard board) {
+    public Set<ChessMove> addMovesInDirection(Set<ChessMove> possibleMoves, int rowStart, int colStart, int rowChange, int colChange, ChessBoard board) {
         ChessPosition startingPosition = new ChessPosition(rowStart, colStart);
         Boolean ranIntoSomething = false;
         int row = rowStart + rowChange;
