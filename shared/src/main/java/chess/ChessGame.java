@@ -21,6 +21,19 @@ public class ChessGame {
     boolean blackInCheck = false;
     boolean gameOver = false;
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return whiteInCheck == chessGame.whiteInCheck && blackInCheck == chessGame.blackInCheck && gameOver == chessGame.gameOver && Objects.equals(isWhiteTurn, chessGame.isWhiteTurn) && Objects.equals(getBoard(), chessGame.getBoard()) && Objects.equals(whiteKing, chessGame.whiteKing) && Objects.equals(blackKing, chessGame.blackKing);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(isWhiteTurn, getBoard(), whiteKing, blackKing, whiteInCheck, blackInCheck, gameOver);
+    }
 
     public ChessGame() {
         isWhiteTurn = true;
