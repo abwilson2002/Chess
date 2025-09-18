@@ -97,11 +97,6 @@ public class ChessGame {
         for (ChessMove move : realPossibleMoves) {
             ChessGame temp = new ChessGame();
             temp.board = this.board;
-            try {
-                temp.makeMove(move);
-            } catch (InvalidMoveException e) {
-                throw new RuntimeException(e);
-            }
 
             if (king.kingCanMove(temp.board, startPosition)) {
                 realPossibleMoves.add(move);
@@ -120,7 +115,8 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        if (gameOver) {
+        Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
+        if (!validMoves.contains(move)) {
             throw new InvalidMoveException();
         }
 
