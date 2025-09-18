@@ -91,7 +91,7 @@ public class ChessGame {
 
         Collection<ChessMove> realPossibleMoves = board.allPieces.get(startPosition).pieceMoves(board, startPosition);
         ChessPiece king = whiteKing;
-        if (board.allPieces.get(startPosition).getTeamColor() == TeamColor.BLACK) {
+        if (!isWhiteTurn) {
             king = blackKing;
         }
         for (ChessMove move : realPossibleMoves) {
@@ -102,7 +102,7 @@ public class ChessGame {
                 realPossibleMoves.add(move);
             }
         }
-        if (realPossibleMoves.size() == 0) {
+        if (realPossibleMoves.isEmpty()) {
             gameOver = true;
         }
         return realPossibleMoves;
@@ -139,13 +139,6 @@ public class ChessGame {
                     movingRook.moved = true;
                 }
             }
-            if (side == TeamColor.WHITE) {
-                whiteKing = board.allPieces.get(move.getEndPosition());
-                whiteKingPos = move.getEndPosition();
-            } else {
-                blackKing = board.allPieces.get(move.getEndPosition());
-                blackKingPos = move.getEndPosition();
-            }
         } else {
             if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN & abs((movingPiece.row) - (end.getRow())) == 2) {
                 if (getTeamTurn() == TeamColor.WHITE) {
@@ -176,6 +169,16 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
+        for (Map.Entry<ChessPosition, ChessPiece> piece : board.allPieces.entrySet()) {
+            ChessPiece wKing = new ChessPiece(TeamColor.WHITE, ChessPiece.PieceType.KING);
+            ChessPiece bKing = new ChessPiece(TeamColor.BLACK, ChessPiece.PieceType.KING);
+            if (Objects.equals(piece.getValue(), wKing)) {
+                whiteKingPos = piece.getKey();
+            } else if (Objects.equals(piece.getValue(), bKing)) {
+                blackKingPos = piece.getKey();
+            }
+        }
+
         if (teamColor == TeamColor.BLACK) {
             if (!blackKing.kingCanMove(board, blackKingPos)) {
                 blackInCheck = true;
