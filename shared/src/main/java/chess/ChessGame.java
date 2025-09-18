@@ -15,10 +15,16 @@ public class ChessGame {
 
     Boolean isWhiteTurn;
     ChessBoard board;
+    ChessPiece whiteKing;
+    ChessPiece blackKing;
 
 
     public ChessGame() {
         isWhiteTurn = true;
+        board = new ChessBoard();
+        board.resetBoard();
+        whiteKing = board.allPieces.get(new ChessPosition(1,5));
+        whiteKing = board.allPieces.get(new ChessPosition(8,5));
     }
 
     /**
@@ -54,13 +60,6 @@ public class ChessGame {
     }
 
 
-    public Collection<ChessMove> whiteTeamsMoves() {
-        Set<ChessMove> whiteMoves = new HashSet<>();
-
-        return whiteMoves;
-    }
-
-
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -71,10 +70,18 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
 
         Collection<ChessMove> realPossibleMoves = board.allPieces.get(startPosition).pieceMoves(board, startPosition);
-        for (ChessMove move : realPossibleMoves) {
-
+        ChessPiece king = whiteKing;
+        if (board.allPieces.get(startPosition).getTeamColor() == TeamColor.BLACK) {
+            king = blackKing;
         }
-
+        for (ChessMove move : realPossibleMoves) {
+            ChessGame temp = new ChessGame();
+            temp.board = this.board;
+            temp.makeMove(move);
+            if (king.kingCanMove(temp.board, startPosition)) {
+                realPossibleMoves.add(move);
+            }
+        }
         return realPossibleMoves;
     }
 
@@ -84,7 +91,7 @@ public class ChessGame {
      * @param move chess move to perform
      * @throws InvalidMoveException if move is invalid
      */
-    public void makeMove(ChessMove move) throws InvalidMoveException {
+    public void makeMove(ChessMove move) {
         ChessPiece movingPiece = board.allPieces.get(move.getStartPosition());
         ChessPosition end = move.getEndPosition();
         board.allPieces.put(move.getEndPosition(), movingPiece);
@@ -108,6 +115,11 @@ public class ChessGame {
                     board.allPieces.remove(new ChessPosition(movingRow, 8));
                 }
                 movingRook.moved = true;
+            }
+            if (side == TeamColor.WHITE) {
+                whiteKing = board.allPieces.get(move.getEndPosition());
+            } else {
+                blackKing = board.allPieces.get(move.getEndPosition());
             }
         }
 
