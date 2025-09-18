@@ -93,7 +93,12 @@ public class ChessGame {
         for (ChessMove move : realPossibleMoves) {
             ChessGame temp = new ChessGame();
             temp.board = this.board;
-            temp.makeMove(move);
+            try {
+                temp.makeMove(move);
+            } catch (InvalidMoveException e) {
+                throw new RuntimeException(e);
+            }
+
             if (king.kingCanMove(temp.board, startPosition)) {
                 realPossibleMoves.add(move);
             }
@@ -110,10 +115,11 @@ public class ChessGame {
      * @param move chess move to perform
      * @throws InvalidMoveException if move is invalid
      */
-    public void makeMove(ChessMove move) {
+    public void makeMove(ChessMove move) throws InvalidMoveException {
         if (gameOver) {
-            return;
+            throw new InvalidMoveException();
         }
+
         ChessPiece movingPiece = board.allPieces.get(move.getStartPosition());
         ChessPosition end = move.getEndPosition();
         TeamColor side = ChessGame.TeamColor.WHITE;
@@ -216,6 +222,7 @@ public class ChessGame {
         }
         if (isInCheck(teamColor)) {
             if (king.kingCanMove(board, new ChessPosition(king.row, king.col))) {
+                gameOver = true;
                 return true;
             }
         }
