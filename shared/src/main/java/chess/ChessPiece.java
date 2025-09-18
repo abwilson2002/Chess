@@ -149,11 +149,11 @@ public class ChessPiece {
             }
             if (!moved) {
                 if (!board.getPiece(new ChessPosition(row, 1)).moved) {
-                    if (board.getPiece(new ChessPosition(row, 2)) == null & board.getPiece(new ChessPosition(row, 3)) == null & board.getPiece(new ChessPosition(row, 4)) == null) {
+                    if (board.getPiece(new ChessPosition(row, 2)) == null & kingCanMove(board, new ChessPosition(row, 2)) & board.getPiece(new ChessPosition(row, 3)) == null & kingCanMove(board, new ChessPosition(row, 3)) & board.getPiece(new ChessPosition(row, 4)) == null & kingCanMove(board, new ChessPosition(row, 4))) {
                         possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
                     }
                 } else if (!board.getPiece(new ChessPosition(row, 8)).moved) {
-                    if (board.getPiece(new ChessPosition(row, 6)) == null & board.getPiece(new ChessPosition(row, 7)) == null) {
+                    if ((board.getPiece(new ChessPosition(row, 6)) == null & kingCanMove(board, new ChessPosition(row, 6))) & (board.getPiece(new ChessPosition(row, 7)) == null) & kingCanMove(board, new ChessPosition(row, 7))) {
                         possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 7), null));
                     }
                 }
@@ -252,12 +252,12 @@ public class ChessPiece {
 
     boolean linearKingChecks(ChessBoard board) {
         for (int i = -1; i < 2; i += 2) {
-            if(!kingMovesInADirection(board, row, col, i, 0)) {
+            if(!kingMovesInADirection(board, row, col, i, 0, PieceType.ROOK)) {
                 return false;
             }
         }
         for (int j = -1; j < 2; j += 2) {
-            if (!kingMovesInADirection(board, row, col, 0, j)) {
+            if (!kingMovesInADirection(board, row, col, 0, j, PieceType.ROOK)) {
                 return false;
             }
         }
@@ -267,7 +267,7 @@ public class ChessPiece {
     boolean diagonalKingChecks(ChessBoard board) {
         for (int i = -1; i < 2; i += 2) {
             for (int j = -1; j < 2; j += 2) {
-                if (!kingMovesInADirection(board, row, col, i, j)) {
+                if (!kingMovesInADirection(board, row, col, i, j, PieceType.BISHOP)) {
                     return false;
                 }
             }
@@ -309,7 +309,7 @@ public class ChessPiece {
         return possibleMoves;
     }
 
-    boolean kingMovesInADirection(ChessBoard board, int rowStart, int colStart, int rowChange, int colChange) {
+    boolean kingMovesInADirection(ChessBoard board, int rowStart, int colStart, int rowChange, int colChange, PieceType checking) {
         int row = rowStart + rowChange;
         int col = colStart + colChange;
         ChessPosition temp = new ChessPosition(row, col);
@@ -318,7 +318,7 @@ public class ChessPiece {
             if (withinBoard(row, col)) {
                 if (isSpaceFilled(board, temp)) {
                     if (isSpaceEnemy(board, temp)) {
-                        if (board.allPieces.get(temp).getPieceType() != this.type) {
+                        if (board.allPieces.get(temp).getPieceType() != checking && board.allPieces.get(temp).getPieceType() != PieceType.QUEEN) {
                             return false;
                         }
                     }
