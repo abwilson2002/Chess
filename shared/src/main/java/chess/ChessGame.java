@@ -166,9 +166,9 @@ public class ChessGame {
             movingPiece.moved = true;
             board.allPieces.put(end, movingPiece);
             board.allPieces.remove(move.getStartPosition());
-            TeamColor currTeam = TeamColor.WHITE;
             isInCheck(TeamColor.WHITE);
             isInCheck(TeamColor.BLACK);
+            isWhiteTurn = !isWhiteTurn;
         }
 
     }

@@ -84,16 +84,11 @@ public class ChessPiece {
         row = myPosition.getRow();
         col = myPosition.getColumn();
 
-        if (type == PieceType.ROOK) {
-            return linearKingChecks(board);
-        } else if (type == PieceType.BISHOP) {
-            return diagonalKingChecks(board);
-        } else if (type == PieceType.QUEEN) {
-            if (!linearKingChecks(board)) {
-                return false;
-            }
-            return diagonalKingChecks(board);
-        } else if (type == PieceType.KNIGHT) {
+        if (!linearKingChecks(board)) {
+            return false;
+        } else if (!diagonalKingChecks(board)) {
+            return false;
+        }else if (type == PieceType.KNIGHT) {
             int holder1 = 1;
             int holder2 = 2;
             for (int i = -1; i < 2; i += 2) {
@@ -318,7 +313,7 @@ public class ChessPiece {
             if (withinBoard(row, col)) {
                 if (isSpaceFilled(board, temp)) {
                     if (isSpaceEnemy(board, temp)) {
-                        if (board.allPieces.get(temp).getPieceType() != checking && board.allPieces.get(temp).getPieceType() != PieceType.QUEEN) {
+                        if (board.allPieces.get(temp).getPieceType() == checking || board.allPieces.get(temp).getPieceType() == PieceType.QUEEN) {
                             return false;
                         }
                     }
