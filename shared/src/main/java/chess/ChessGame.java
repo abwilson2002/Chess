@@ -199,15 +199,39 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        ChessPiece king = whiteKing;
-        if (teamColor == TeamColor.BLACK) {
-            king = blackKing;
-        }
         if (isInCheck(teamColor)) {
-            if (!king.kingCanMove(board, new ChessPosition(king.row, king.col))) {
-                gameOver = true;
-                return true;
+            ChessPiece king = whiteKing;
+            int currentRow = whiteKingPos.getRow();
+            int currentCol = whiteKingPos.getColumn();
+            if (teamColor == TeamColor.BLACK) {
+                king = blackKing;
+                currentRow = blackKingPos.getRow();
+                currentCol = blackKingPos.getColumn();
             }
+            for (Map.Entry<ChessPosition, ChessPiece> piece : board.allPieces.entrySet()) {
+                if (piece.getValue().faction == teamColor) {
+                    if (!validMoves(piece.getKey()).isEmpty()) {
+                        return false;
+                    }
+                }
+            }
+            for (int i = -1; i < 2; i++) {
+                for (int j = -1; j < 2; j ++) {
+                    if (i == 0 & j == 0) {
+                        continue;
+                    } else {
+                        if (king.withinBoard(currentRow + i, currentCol + j)) {
+                            if (!king.isSpaceFilled(board, new ChessPosition(currentRow + i, currentCol + j)) || king.isSpaceEnemy(board, new ChessPosition(currentRow + i, currentCol + j))) {
+                                if (king.kingCanMove(board, new ChessPosition(currentRow + i, currentCol + j))) {
+                                    gameOver = false;
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
         }
         return false;
     }
@@ -220,17 +244,35 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
+        isInCheck(teamColor);
         ChessPiece king = whiteKing;
+        int currentRow = whiteKingPos.getRow();
+        int currentCol = whiteKingPos.getColumn();
         if (teamColor == TeamColor.BLACK) {
             king = blackKing;
+            currentRow = blackKingPos.getRow();
+            currentCol = blackKingPos.getColumn();
         }
-        if (isInCheck(teamColor)) {
-            if (king.kingCanMove(board, new ChessPosition(king.row, king.col))) {
-                gameOver = true;
-                return true;
+        boolean kingSafeNow = false;
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j ++) {
+                if (i == 0 & j == 0) {
+                    if (king.kingCanMove(board, new ChessPosition(currentRow, currentCol))) {
+                        kingSafeNow = true;
+                    }
+                } else {
+                    if (king.withinBoard(currentRow + i, currentCol + j)) {
+                        if (king.kingCanMove(board, new ChessPosition(currentRow + i, currentCol + j))) {
+                            return false;
+                        }
+                    }
+                }
             }
         }
-        return false;
+        if (kingSafeNow) {
+            gameOver = true;
+        }
+        return kingSafeNow;
     }
 
     /**

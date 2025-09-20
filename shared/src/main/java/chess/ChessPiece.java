@@ -88,26 +88,57 @@ public class ChessPiece {
             return false;
         } else if (!diagonalKingChecks(board)) {
             return false;
-        }else if (type == PieceType.KNIGHT) {
-            int holder1 = 1;
-            int holder2 = 2;
-            for (int i = -1; i < 2; i += 2) {
-                for (int j = -1; j < 2; j += 2) {
-                    int rowCheck = row + (holder1 * i);
-                    int colCheck = col + (holder2 * j);
-                    ChessPosition temp = new ChessPosition(rowCheck, colCheck);
-                    for (int k = 0; k < 2; k++) {
-                        if (withinBoard(rowCheck, colCheck)) {
-                            if (isSpaceFilled(board, temp)) {
-                                if (isSpaceEnemy(board, temp)) {
-                                    return (board.allPieces.get(temp).getPieceType() != PieceType.KNIGHT);
+        }
+        int holder1 = 1;
+        int holder2 = 2;
+        for (int i = -1; i < 2; i += 2) {
+            for (int j = -1; j < 2; j += 2) {
+                int rowCheck = row + (holder1 * i);
+                int colCheck = col + (holder2 * j);
+                ChessPosition temp = new ChessPosition(rowCheck, colCheck);
+                for (int k = 0; k < 2; k++) {
+                    if (withinBoard(rowCheck, colCheck)) {
+                        if (isSpaceFilled(board, temp)) {
+                            if (isSpaceEnemy(board, temp)) {
+                                if (board.allPieces.get(temp).getPieceType() == PieceType.KNIGHT) {
+                                    return false;
                                 }
                             }
-
                         }
-                        rowCheck = row + (holder2 * i);
-                        colCheck = col + (holder1 * j);
-                        temp = new ChessPosition(rowCheck, colCheck);
+
+                    }
+                    rowCheck = row + (holder2 * i);
+                    colCheck = col + (holder1 * j);
+                    temp = new ChessPosition(rowCheck, colCheck);
+                }
+            }
+        }
+        int pawnDirectionCheck = -1;
+        if (faction == ChessGame.TeamColor.WHITE) {
+            pawnDirectionCheck = 1;
+        }
+        for (int i = -1; i < 2; i += 2) {
+            ChessPosition pawnCheck = new ChessPosition(row + pawnDirectionCheck, col + i);
+            if (isSpaceFilled(board, pawnCheck)) {
+                if (isSpaceEnemy(board, pawnCheck) && board.allPieces.get(pawnCheck).getPieceType() == PieceType.PAWN) {
+                    return false;
+                }
+            }
+        }
+
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if (i == 0 & j == 0) {
+                    j++;
+                }
+                ChessPosition temp = new ChessPosition(row + i, col + j);
+                if (withinBoard(row + i, col + j)) {
+                    if (isSpaceFilled(board, temp)) {
+                        if (isSpaceEnemy(board, temp)) {
+                            if (board.allPieces.get(temp).getPieceType() == PieceType.KING) {
+                                return false;
+                            }
+                        }
                     }
                 }
             }
@@ -143,13 +174,21 @@ public class ChessPiece {
                 }
             }
             if (!moved) {
-                if (!board.getPiece(new ChessPosition(row, 1)).moved) {
-                    if (board.getPiece(new ChessPosition(row, 2)) == null & kingCanMove(board, new ChessPosition(row, 2)) & board.getPiece(new ChessPosition(row, 3)) == null & kingCanMove(board, new ChessPosition(row, 3)) & board.getPiece(new ChessPosition(row, 4)) == null & kingCanMove(board, new ChessPosition(row, 4))) {
-                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
+                if (board.getPiece(new ChessPosition(row, 1)) != null) {
+                    if (board.getPiece(new ChessPosition(row, 1)).getPieceType() == PieceType.ROOK & board.getPiece(new ChessPosition(row, 1)).getTeamColor() == this.faction) {
+                        if (board.getPiece(new ChessPosition(row, 1)).moved) {
+                            if (board.getPiece(new ChessPosition(row, 2)) == null & kingCanMove(board, new ChessPosition(row, 2)) & board.getPiece(new ChessPosition(row, 3)) == null & kingCanMove(board, new ChessPosition(row, 3)) & board.getPiece(new ChessPosition(row, 4)) == null & kingCanMove(board, new ChessPosition(row, 4))) {
+                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
+                            }
+                        }
                     }
-                } else if (!board.getPiece(new ChessPosition(row, 8)).moved) {
-                    if ((board.getPiece(new ChessPosition(row, 6)) == null & kingCanMove(board, new ChessPosition(row, 6))) & (board.getPiece(new ChessPosition(row, 7)) == null) & kingCanMove(board, new ChessPosition(row, 7))) {
-                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 7), null));
+                } else if (board.getPiece(new ChessPosition(row, 8)) != null) {
+                    if (board.getPiece(new ChessPosition(row, 8)).getPieceType() == PieceType.ROOK & board.getPiece(new ChessPosition(row, 8)).getTeamColor() == this.faction) {
+                        if (board.getPiece(new ChessPosition(row, 8)).moved) {
+                            if (board.getPiece(new ChessPosition(row, 6)) == null & kingCanMove(board, new ChessPosition(row, 6)) & board.getPiece(new ChessPosition(row, 7)) == null & kingCanMove(board, new ChessPosition(row, 7))) {
+                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
+                            }
+                        }
                     }
                 }
             }
