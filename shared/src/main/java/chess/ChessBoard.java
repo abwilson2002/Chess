@@ -85,5 +85,54 @@ public class ChessBoard {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder boardString = new StringBuilder();
+        for (int i = 8; i > 0; i--) {
+            boardString.append("|");
+            for (int j = 1; j < 9; j++) {
+                boardString.append(pieceString(new ChessPosition(i,j)));
+                boardString.append("|");
+            }
+            boardString.append("\n");
+        }
+        return boardString.toString();
+    }
 
+    private String pieceString(ChessPosition position) {
+        ChessPiece temp = allPieces.get(position);
+        if (temp == null) {
+            return " ";
+        }
+        if (temp.getTeamColor() == TeamColor.WHITE) {
+            if (temp.getPieceType() == PieceType.PAWN) {
+                return "P";
+            } else if (temp.getPieceType() == PieceType.ROOK) {
+                return "R";
+            } else if (temp.getPieceType() == PieceType.BISHOP) {
+                return "B";
+            } else if (temp.getPieceType() == PieceType.KNIGHT) {
+                return "N";
+            } else if (temp.getPieceType() == PieceType.KING) {
+                return "K";
+            } else if (temp.getPieceType() == PieceType.QUEEN) {
+                return "Q";
+            }
+        } else {
+            if (temp.getPieceType() == PieceType.PAWN) {
+                return "p";
+            } else if (temp.getPieceType() == PieceType.ROOK) {
+                return "r";
+            } else if (temp.getPieceType() == PieceType.BISHOP) {
+                return "b";
+            } else if (temp.getPieceType() == PieceType.KNIGHT) {
+                return "n";
+            } else if (temp.getPieceType() == PieceType.KING) {
+                return "k";
+            } else if (temp.getPieceType() == PieceType.QUEEN) {
+                return "q";
+            }
+        }
+        return " ";
+    }
 }

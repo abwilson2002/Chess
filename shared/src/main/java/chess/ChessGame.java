@@ -88,19 +88,34 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        ChessPiece tempPiece = board.allPieces.get(startPosition);
+        Collection<ChessMove> realPossibleMoves = new ArrayList<>();
+        if (tempPiece == null) {
+            return realPossibleMoves;
+        }
+        Collection<ChessMove> possibleMoves = tempPiece.pieceMoves(board, startPosition);
 
-        Collection<ChessMove> realPossibleMoves = board.allPieces.get(startPosition).pieceMoves(board, startPosition);
         ChessPiece king = whiteKing;
+        ChessPosition kingPosition = whiteKingPos;
         if (!isWhiteTurn) {
             king = blackKing;
+            kingPosition = blackKingPos;
         }
-        for (ChessMove move : realPossibleMoves) {
+        for (ChessMove move : possibleMoves) {
+            ChessPiece tempTakenPiece = board.allPieces.get(move.getEndPosition());
             ChessGame temp = new ChessGame();
             temp.board = this.board;
+            temp.board.allPieces.put(move.getEndPosition(), tempPiece);
+            temp.board.allPieces.remove(move.getStartPosition());
+            if (tempPiece.getPieceType() == ChessPiece.PieceType.KING) {
+                kingPosition = move.getEndPosition();
+            }
 
-            if (king.kingCanMove(temp.board, startPosition)) {
+            if (king.kingCanMove(temp.board, kingPosition)) {
                 realPossibleMoves.add(move);
             }
+            temp.board.allPieces.put(move.getStartPosition(), tempPiece);
+            temp.board.allPieces.put(move.getEndPosition(), tempTakenPiece);
         }
         if (realPossibleMoves.isEmpty()) {
             gameOver = true;
@@ -208,30 +223,19 @@ public class ChessGame {
                 currentRow = blackKingPos.getRow();
                 currentCol = blackKingPos.getColumn();
             }
+            boolean noMovesPossible = true;
             for (Map.Entry<ChessPosition, ChessPiece> piece : board.allPieces.entrySet()) {
                 if (piece.getValue().faction == teamColor) {
                     if (!validMoves(piece.getKey()).isEmpty()) {
-                        return false;
+                        noMovesPossible = false;
                     }
                 }
             }
-            for (int i = -1; i < 2; i++) {
-                for (int j = -1; j < 2; j ++) {
-                    if (i == 0 & j == 0) {
-                        continue;
-                    } else {
-                        if (king.withinBoard(currentRow + i, currentCol + j)) {
-                            if (!king.isSpaceFilled(board, new ChessPosition(currentRow + i, currentCol + j)) || king.isSpaceEnemy(board, new ChessPosition(currentRow + i, currentCol + j))) {
-                                if (king.kingCanMove(board, new ChessPosition(currentRow + i, currentCol + j))) {
-                                    gameOver = false;
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                }
+            if (noMovesPossible) {
+                return true;
+            } else {
+                return false;
             }
-            return true;
         }
         return false;
     }
