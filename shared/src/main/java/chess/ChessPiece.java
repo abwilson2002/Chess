@@ -369,7 +369,7 @@ public class ChessPiece {
     }
 
     Boolean isSpaceFilled(ChessBoard board, ChessPosition target) {
-        return board.allPieces.containsKey(target);
+        return board.allPieces.get(target) != null;
     }
 
     Boolean isSpaceEnemy(ChessBoard board, ChessPosition target) {

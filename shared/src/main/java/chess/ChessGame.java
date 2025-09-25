@@ -117,9 +117,6 @@ public class ChessGame {
             temp.board.allPieces.put(move.getStartPosition(), tempPiece);
             temp.board.allPieces.put(move.getEndPosition(), tempTakenPiece);
         }
-        if (realPossibleMoves.isEmpty()) {
-            gameOver = true;
-        }
         return realPossibleMoves;
     }
 
@@ -155,17 +152,21 @@ public class ChessGame {
                 }
             }
         } else {
-            if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN & abs((movingPiece.row) - (end.getRow())) == 2) {
-                if (getTeamTurn() == TeamColor.WHITE) {
-                    board.whitePawnDoubleMove = true;
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                if (abs((movingPiece.row) - (end.getRow())) == 2) {
+                    if (getTeamTurn() == TeamColor.WHITE) {
+                        board.whitePawnDoubleMove = true;
+                    } else {
+                        board.blackPawnDoubleMove = true;
+                    }
+                    board.enPassantPosition = move.getEndPosition();
+                } else if(end.getRow() == 8) {
+                    movingPiece.type = move.pawnUpgrade;
                 } else {
-                    board.blackPawnDoubleMove = true;
+                    board.whitePawnDoubleMove = false;
+                    board.blackPawnDoubleMove = false;
+                    board.enPassantPosition = null;
                 }
-                board.enPassantPosition = move.getEndPosition();
-            } else {
-                board.whitePawnDoubleMove = false;
-                board.blackPawnDoubleMove = false;
-                board.enPassantPosition = null;
             }
             movingPiece.moved = true;
             board.allPieces.put(end, movingPiece);
@@ -224,18 +225,18 @@ public class ChessGame {
                 currentCol = blackKingPos.getColumn();
             }
             boolean noMovesPossible = true;
+            Set<ChessPosition> allFactionPieces = new HashSet<>();
             for (Map.Entry<ChessPosition, ChessPiece> piece : board.allPieces.entrySet()) {
                 if (piece.getValue().faction == teamColor) {
-                    if (!validMoves(piece.getKey()).isEmpty()) {
-                        noMovesPossible = false;
-                    }
+                    allFactionPieces.add(piece.getKey());
                 }
             }
-            if (noMovesPossible) {
-                return true;
-            } else {
-                return false;
+            for (ChessPosition piece : allFactionPieces) {
+                if (!validMoves(piece).isEmpty()) {
+                    noMovesPossible = false;
+                }
             }
+            return noMovesPossible;
         }
         return false;
     }
