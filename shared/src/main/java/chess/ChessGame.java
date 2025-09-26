@@ -94,10 +94,10 @@ public class ChessGame {
             return realPossibleMoves;
         }
         Collection<ChessMove> possibleMoves = tempPiece.pieceMoves(board, startPosition);
-
+        getKingPosition();
         ChessPiece king = whiteKing;
         ChessPosition kingPosition = whiteKingPos;
-        if (!isWhiteTurn) {
+        if (tempPiece.getTeamColor() == TeamColor.BLACK) {
             king = blackKing;
             kingPosition = blackKingPos;
         }
@@ -115,9 +115,25 @@ public class ChessGame {
                 realPossibleMoves.add(move);
             }
             temp.board.allPieces.put(move.getStartPosition(), tempPiece);
-            temp.board.allPieces.put(move.getEndPosition(), tempTakenPiece);
+            if (tempTakenPiece == null) {
+                board.allPieces.remove(move.getEndPosition());
+            } else {
+                temp.board.allPieces.put(move.getEndPosition(), tempTakenPiece);
+            }
         }
         return realPossibleMoves;
+    }
+
+    public void getKingPosition() {
+        for (Map.Entry<ChessPosition, ChessPiece> piece : board.allPieces.entrySet()) {
+            if (piece.getValue().type == ChessPiece.PieceType.KING) {
+                if (piece.getValue().faction == TeamColor.WHITE) {
+                    whiteKingPos = piece.getKey();
+                } else {
+                    blackKingPos = piece.getKey();
+                }
+            }
+        }
     }
 
     /**
