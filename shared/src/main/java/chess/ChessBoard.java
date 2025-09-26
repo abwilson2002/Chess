@@ -12,7 +12,7 @@ import chess.ChessPiece.PieceType;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessBoard {
+public class ChessBoard implements Cloneable{
 
     public Map<ChessPosition, ChessPiece> allPieces = new HashMap<>();
     boolean whitePawnDoubleMove = false;
@@ -28,12 +28,12 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return whitePawnDoubleMove == that.whitePawnDoubleMove && blackPawnDoubleMove == that.blackPawnDoubleMove && Objects.equals(allPieces, that.allPieces);
+        return whitePawnDoubleMove == that.whitePawnDoubleMove && blackPawnDoubleMove == that.blackPawnDoubleMove && Objects.equals(allPieces, that.allPieces) && Objects.equals(enPassantPosition, that.enPassantPosition);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(allPieces, whitePawnDoubleMove, blackPawnDoubleMove);
+        return Objects.hash(allPieces, whitePawnDoubleMove, blackPawnDoubleMove, enPassantPosition);
     }
 
     /**
@@ -134,5 +134,22 @@ public class ChessBoard {
             }
         }
         return " ";
+    }
+
+    @Override
+    public ChessBoard clone() {
+        try {
+            ChessBoard clone = (ChessBoard) super.clone();
+            clone.allPieces = new HashMap<ChessPosition, ChessPiece>();
+            for (Map.Entry<ChessPosition, ChessPiece> piece : this.allPieces.entrySet()) {
+                clone.allPieces.put(piece.getKey(), piece.getValue().clone());
+            }
+            clone.enPassantPosition = null;
+            clone.whitePawnDoubleMove = false;
+            clone.blackPawnDoubleMove = false;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

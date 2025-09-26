@@ -11,7 +11,7 @@ import static java.lang.Math.abs;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessPiece {
+public class ChessPiece implements Cloneable {
 
     ChessGame.TeamColor faction;
     ChessPiece.PieceType type;
@@ -46,6 +46,16 @@ public class ChessPiece {
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         faction = pieceColor;
         this.type = type;
+    }
+
+    @Override
+    public ChessPiece clone() {
+        try {
+            ChessPiece clone = (ChessPiece) super.clone();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 
     /**
@@ -384,5 +394,7 @@ public class ChessPiece {
         }
         return false;
     }
+
+
 
 }
