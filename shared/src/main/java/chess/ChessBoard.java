@@ -144,9 +144,9 @@ public class ChessBoard implements Cloneable{
             for (Map.Entry<ChessPosition, ChessPiece> piece : this.allPieces.entrySet()) {
                 clone.allPieces.put(piece.getKey(), piece.getValue().clone());
             }
-            clone.enPassantPosition = null;
-            clone.whitePawnDoubleMove = false;
-            clone.blackPawnDoubleMove = false;
+            clone.enPassantPosition = this.enPassantPosition;
+            clone.whitePawnDoubleMove = this.whitePawnDoubleMove;
+            clone.blackPawnDoubleMove = this.blackPawnDoubleMove;
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();

@@ -15,8 +15,6 @@ public class ChessPiece implements Cloneable {
 
     ChessGame.TeamColor faction;
     ChessPiece.PieceType type;
-    int row;
-    int col;
     boolean moved = false;
 
     @Override
@@ -25,12 +23,12 @@ public class ChessPiece implements Cloneable {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return row == that.row && col == that.col && faction == that.faction && type == that.type && moved == that.moved;
+        return faction == that.faction && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(faction, type, row, col, moved);
+        return Objects.hash(faction, type);
     }
 
     @Override
@@ -38,8 +36,6 @@ public class ChessPiece implements Cloneable {
         return "ChessPiece{" +
                 "faction=" + faction +
                 ", type=" + type +
-                ", row=" + row +
-                ", col=" + col +
                 '}';
     }
 
@@ -91,12 +87,12 @@ public class ChessPiece implements Cloneable {
      * @return Collection of valid moves
      */
     public boolean kingCanMove(ChessBoard board, ChessPosition myPosition) {
-        row = myPosition.getRow();
-        col = myPosition.getColumn();
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
 
-        if (!linearKingChecks(board)) {
+        if (!linearKingChecks(board, row, col)) {
             return false;
-        } else if (!diagonalKingChecks(board)) {
+        } else if (!diagonalKingChecks(board, row, col)) {
             return false;
         }
         int holder1 = 1;
@@ -158,18 +154,18 @@ public class ChessPiece implements Cloneable {
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Set<ChessMove> possibleMoves = new HashSet<>();
-        row = myPosition.getRow();
-        col = myPosition.getColumn();
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
 
         if (type == PieceType.PAWN) {
             possibleMoves = pawnMoves(board, myPosition, possibleMoves);
         } else if (type == PieceType.ROOK) {
-            possibleMoves = linearChecks(board, myPosition, possibleMoves);
+            possibleMoves = linearChecks(board, myPosition, possibleMoves, row, col);
         } else if (type == PieceType.BISHOP) {
-            possibleMoves = diagonalChecks(board, myPosition, possibleMoves);
+            possibleMoves = diagonalChecks(board, myPosition, possibleMoves, row, col);
         } else if (type == PieceType.QUEEN) {
-            possibleMoves = linearChecks(board, myPosition, possibleMoves);
-            possibleMoves = diagonalChecks(board, myPosition, possibleMoves);
+            possibleMoves = linearChecks(board, myPosition, possibleMoves, row, col);
+            possibleMoves = diagonalChecks(board, myPosition, possibleMoves, row, col);
         } else if (type == PieceType.KING) {
             for (int i = -1; i < 2; i++) {
                 for (int j = -1; j < 2; j++) {
@@ -183,20 +179,21 @@ public class ChessPiece implements Cloneable {
                     }
                 }
             }
-            if (!moved) {
+            if (!moved & kingCanMove(board, myPosition)) {
                 if (board.getPiece(new ChessPosition(row, 1)) != null) {
                     if (board.getPiece(new ChessPosition(row, 1)).getPieceType() == PieceType.ROOK & board.getPiece(new ChessPosition(row, 1)).getTeamColor() == this.faction) {
-                        if (board.getPiece(new ChessPosition(row, 1)).moved) {
+                        if (!board.getPiece(new ChessPosition(row, 1)).moved) {
                             if (board.getPiece(new ChessPosition(row, 2)) == null & kingCanMove(board, new ChessPosition(row, 2)) & board.getPiece(new ChessPosition(row, 3)) == null & kingCanMove(board, new ChessPosition(row, 3)) & board.getPiece(new ChessPosition(row, 4)) == null & kingCanMove(board, new ChessPosition(row, 4))) {
                                 possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
                             }
                         }
                     }
-                } else if (board.getPiece(new ChessPosition(row, 8)) != null) {
+                }
+                if (board.getPiece(new ChessPosition(row, 8)) != null) {
                     if (board.getPiece(new ChessPosition(row, 8)).getPieceType() == PieceType.ROOK & board.getPiece(new ChessPosition(row, 8)).getTeamColor() == this.faction) {
-                        if (board.getPiece(new ChessPosition(row, 8)).moved) {
+                        if (!board.getPiece(new ChessPosition(row, 8)).moved) {
                             if (board.getPiece(new ChessPosition(row, 6)) == null & kingCanMove(board, new ChessPosition(row, 6)) & board.getPiece(new ChessPosition(row, 7)) == null & kingCanMove(board, new ChessPosition(row, 7))) {
-                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
+                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 7), null));
                             }
                         }
                     }
@@ -230,6 +227,8 @@ public class ChessPiece implements Cloneable {
     }
 
     Set<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves) {
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
         int pawnDirection = 1;
         if (faction == ChessGame.TeamColor.BLACK) {
             pawnDirection = -1;
@@ -284,7 +283,7 @@ public class ChessPiece implements Cloneable {
         return possibleMoves;
     }
 
-    Set<ChessMove> linearChecks(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves) {
+    Set<ChessMove> linearChecks(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves, int row, int col) {
         for (int i = -1; i < 2; i += 2) {
             possibleMoves = movesInADirection(board, myPosition, possibleMoves, row, col, i, 0);
         }
@@ -294,7 +293,7 @@ public class ChessPiece implements Cloneable {
         return possibleMoves;
     }
 
-    boolean linearKingChecks(ChessBoard board) {
+    boolean linearKingChecks(ChessBoard board, int row, int col) {
         for (int i = -1; i < 2; i += 2) {
             if(!kingMovesInADirection(board, row, col, i, 0, PieceType.ROOK)) {
                 return false;
@@ -308,7 +307,7 @@ public class ChessPiece implements Cloneable {
         return true;
     }
 
-    boolean diagonalKingChecks(ChessBoard board) {
+    boolean diagonalKingChecks(ChessBoard board, int row, int col) {
         for (int i = -1; i < 2; i += 2) {
             for (int j = -1; j < 2; j += 2) {
                 if (!kingMovesInADirection(board, row, col, i, j, PieceType.BISHOP)) {
@@ -319,7 +318,7 @@ public class ChessPiece implements Cloneable {
         return true;
     }
 
-    Set<ChessMove> diagonalChecks(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves) {
+    Set<ChessMove> diagonalChecks(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves, int row, int col) {
         for (int i = -1; i < 2; i += 2) {
             for (int j = -1; j < 2; j += 2) {
                 possibleMoves = movesInADirection(board, myPosition, possibleMoves, row, col, i, j);
