@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import io.javalin.*;
 import io.javalin.http.Context;
 import java.util.Map;
+import model.*;
+import dataaccess.*;
 
 public class Server {
 
@@ -27,6 +29,9 @@ public class Server {
         javalinObj.delete("db", this::clear);
     }
 
+
+    //Handler Functions
+
     public int run(int desiredPort) {
         javalinObj.start(desiredPort);
         return javalinObj.port();
@@ -35,14 +40,15 @@ public class Server {
     private void register(Context ctx) {
         var serializer = new Gson();
         var req = serializer.fromJson(ctx.body(), Map.class);
-        var res = Map.of("username", req.get("username"), "authToken", "xyz");
+        var res = Map.of("username", req.get("username"), "authToken", req.get("authToken"));
         ctx.result(serializer.toJson(res));
     }
 
     private void login(Context ctx) {
         var serializer = new Gson();
-        var req = serializer.fromJson(ctx.body(), Map.class);
-        var res = Map.of("username", req.get("username"), "password", req.get("password"));
+        var req = serializer.fromJson(ctx.body(), UserData.class);
+
+        var res = Map.of("username", req.getUsername(), "authToken", req.getAuthToken());
         ctx.result(serializer.toJson(res));
     }
 

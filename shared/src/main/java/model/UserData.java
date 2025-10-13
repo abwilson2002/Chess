@@ -16,5 +16,16 @@ public class UserData {
         this.email = email;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getAuthToken() {
+        return "hi";
+    }
 
 }
