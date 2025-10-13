@@ -12,11 +12,19 @@ public class Server {
     public Server() {
         javalinObj = Javalin.create(config -> config.staticFiles.add("web"));
 
-        javalinObj.delete("db", ctx -> ctx.result("{}"));
+        javalinObj.post("user", this::register);
 
-        javalinObj.post("user", ctx -> register(ctx));
-        // Register your endpoints and exception handlers here.
+        javalinObj.post("session", this::login);
 
+        javalinObj.delete("session", this::logout);
+
+        javalinObj.get("game", this::list);
+
+        javalinObj.post("game", this::create);
+
+        javalinObj.put("game", this::join);
+
+        javalinObj.delete("db", this::clear);
     }
 
     public int run(int desiredPort) {
@@ -28,6 +36,48 @@ public class Server {
         var serializer = new Gson();
         var req = serializer.fromJson(ctx.body(), Map.class);
         var res = Map.of("username", req.get("username"), "authToken", "xyz");
+        ctx.result(serializer.toJson(res));
+    }
+
+    private void login(Context ctx) {
+        var serializer = new Gson();
+        var req = serializer.fromJson(ctx.body(), Map.class);
+        var res = Map.of("username", req.get("username"), "password", req.get("password"));
+        ctx.result(serializer.toJson(res));
+    }
+
+    private void logout(Context ctx) {
+        var serializer = new Gson();
+        var req = serializer.fromJson(ctx.body(), Map.class);
+        var res = Map.of("authToken", req.get("authToken"));
+        ctx.result(serializer.toJson(res));
+    }
+
+    private void list(Context ctx) {
+        var serializer = new Gson();
+        var req = serializer.fromJson(ctx.body(), Map.class);
+        var res = Map.of("authToken", req.get("authToken"));
+        ctx.result(serializer.toJson(res));
+    }
+
+    private void create(Context ctx) {
+        var serializer = new Gson();
+        var req = serializer.fromJson(ctx.body(), Map.class);
+        var res = Map.of("authToken", req.get("authToken"), "gameName", req.get("gameName"));
+        ctx.result(serializer.toJson(res));
+    }
+
+    private void join(Context ctx) {
+        var serializer = new Gson();
+        var req = serializer.fromJson(ctx.body(), Map.class);
+        var res = Map.of("authToken", req.get("authToken"), "playerColor", req.get("playerColor"), "gameID", req.get("gameID"));
+        ctx.result(serializer.toJson(res));
+    }
+
+    private void clear(Context ctx) {
+        var serializer = new Gson();
+        var req = serializer.fromJson(ctx.body(), Map.class);
+        var res = Map.of();
         ctx.result(serializer.toJson(res));
     }
 
