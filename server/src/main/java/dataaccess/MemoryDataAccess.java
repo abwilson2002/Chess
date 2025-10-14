@@ -1,18 +1,23 @@
 package dataaccess;
 
-import model.UserData;
-
+import model.*;
+import java.util.UUID;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MemoryDataAccess implements DataAccess {
 
     private HashMap<String, UserData> userList = new HashMap<>();
-    private HashMap<String, UserData> gameList = new HashMap<>();
-    private HashMap<String, UserData> authList = new HashMap<>();
+    private HashMap<String, GameData> gameList = new HashMap<>();
+    private HashSet<AuthData> authList = new HashSet<>();
 
     @Override
-    public void addUser(UserData user) {
+    public AuthData addUser(UserData user) {
         userList.put(user.username(), user);
+        String newAuth = generateAuth();
+        var newAuthentication = new AuthData(user.username(), newAuth);
+        authList.add(newAuthentication);
+        return newAuthentication;
     }
 
     @Override
@@ -21,7 +26,28 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public AuthData addAuth(String username) {
+        AuthData newAuth = new AuthData(username, generateAuth());
+        authList.add(newAuth);
+        return newAuth;
+    }
+
+    @Override
+    public boolean checkAuth(AuthData auth) {
+        return authList.contains(auth);
+    }
+
+    @Override
+    public void deleteAuth(AuthData auth) {
+        authList.remove(auth.username());
+    }
+
+    @Override
     public void clear() {
         userList.clear();
+    }
+
+    private String generateAuth() {
+        return UUID.randomUUID().toString();
     }
 }

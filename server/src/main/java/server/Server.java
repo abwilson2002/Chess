@@ -52,8 +52,8 @@ public class Server {
             ctx.result(serializer.toJson(regResponse));
         }
         catch (Exception ex) {
-            String message = String.format();
-            ctx.status(401).result(ex.getMessage());
+            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+            ctx.status(403).result(message);
         }
     }
 
@@ -62,8 +62,8 @@ public class Server {
             var serializer = new Gson();
             var user = serializer.fromJson(ctx.body(), UserData.class);
             var service = new UserService(dataAccess);
-            var regResponse = service.register(user);
-            ctx.result(serializer.toJson(regResponse));
+            var loginResponse = service.login(user);
+            ctx.result(serializer.toJson(loginResponse));
         }
         catch (Exception ex) {
             ctx.status(401).result(ex.getMessage());

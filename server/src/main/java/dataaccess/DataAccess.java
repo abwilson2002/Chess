@@ -4,7 +4,9 @@ import model.*;
 
 public interface DataAccess {
     void clear();
-    void addUser(UserData user);
+    AuthData addUser(UserData user);
     UserData getUser(String username);
-
+    AuthData addAuth(String username);
+    boolean checkAuth(AuthData auth);
+    void deleteAuth(AuthData auth);
 }
