@@ -39,7 +39,7 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public void deleteAuth(AuthData auth) {
-        authList.remove(auth.username());
+        authList.remove(auth);
     }
 
     @Override

@@ -66,15 +66,23 @@ public class Server {
             ctx.result(serializer.toJson(loginResponse));
         }
         catch (Exception ex) {
-            ctx.status(401).result(ex.getMessage());
+            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+            ctx.status(401).result(message);
         }
     }
 
     private void logout(Context ctx) {
-        var serializer = new Gson();
-        var req = serializer.fromJson(ctx.body(), Map.class);
-        var res = Map.of("authToken", req.get("authToken"));
-        ctx.result(serializer.toJson(res));
+        try {
+            var serializer = new Gson();
+            var user = serializer.fromJson(ctx.body(), AuthData.class);
+            var service = new UserService(dataAccess);
+            var logoutResponse = service.logout(user);
+            ctx.result(serializer.toJson(logoutResponse));
+        }
+        catch (Exception ex) {
+            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+            ctx.status(401).result(message);
+        }
     }
 
     private void list(Context ctx) {

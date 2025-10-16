@@ -25,7 +25,19 @@ public class UserService {
         if (checkExisting == null) {
             throw new DataAccessException("Error: unauthorized");
         }
+        if (checkExisting != user) {
+            throw new DataAccessException("Error: unauthorized");
+        }
         var authentication = dataAccess.addAuth(user.username());
         return new RegisterResponse(authentication.username(), authentication.authToken());
+    }
+
+    public LogoutResponse logout(AuthData user) throws DataAccessException {
+        var checkExisting = dataAccess.checkAuth(user);
+        if (!checkExisting) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        dataAccess.deleteAuth(user);
+        return new LogoutResponse();
     }
 }
