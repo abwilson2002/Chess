@@ -111,15 +111,31 @@ public class Server {
         }
         catch (Exception ex) {
             String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(403).result(message);
+            ctx.status(401).result(message);
         }
     }
 
     private void create(Context ctx) {
-        var serializer = new Gson();
-        var req = serializer.fromJson(ctx.body(), Map.class);
-        var res = Map.of("authToken", req.get("authToken"), "gameName", req.get("gameName"));
-        ctx.result(serializer.toJson(res));
+        try {
+            var serializer = new Gson();
+            var auth = ctx.header("authorization");
+            var game = serializer.fromJson(ctx.body(), GameData.class);
+            var service = new UserService(dataAccess);
+            var createResponse = service.create(game.gameName(), auth);
+            ctx.result(serializer.toJson(createResponse));
+        }
+        catch (Exception ex) {
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
+        }
     }
 
     private void join(Context ctx) {

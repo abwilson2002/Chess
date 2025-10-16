@@ -65,6 +65,14 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public Integer createGame(String gameName) {
+        Integer gameID = gameList.size() + 1;
+        var newGame = new GameData(gameID, null, null, gameName);
+        gameList.put(gameID.toString(), newGame);
+        return gameID;
+    }
+
+    @Override
     public void clear() {
         userList.clear();
     }

@@ -13,4 +13,5 @@ public interface DataAccess {
     boolean checkAuth(String auth);
     void deleteAuth(String auth);
     List<GameData> listGames();
+    Integer createGame(String gameName);
 }

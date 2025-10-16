@@ -53,4 +53,15 @@ public class UserService {
         }
         return new ListResponse(dataAccess.listGames());
     }
+
+    public CreateResponse create(String gameName, String user) throws DataAccessException {
+        var checkExisting = dataAccess.checkAuth(user);
+        if (!checkExisting) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        if (gameName == null) {
+            throw new DataAccessException("Error: bad request");
+        }
+        return new CreateResponse(dataAccess.createGame(gameName));
+    }
 }
