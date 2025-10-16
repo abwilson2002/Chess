@@ -138,11 +138,31 @@ public class Server {
         }
     }
 
-    private void join(Context ctx) {
-        var serializer = new Gson();
-        var req = serializer.fromJson(ctx.body(), Map.class);
-        var res = Map.of("authToken", req.get("authToken"), "playerColor", req.get("playerColor"), "gameID", req.get("gameID"));
-        ctx.result(serializer.toJson(res));
+    private void join(Context ctx) throws DataAccessException {
+        try {
+            var serializer = new Gson();
+            var auth = ctx.header("authorization");
+            var input = serializer.fromJson(ctx.body(), Map.class);
+            var JoinRequest = new JoinData((Double) input.get("gameID"), (String) input.get("playerColor"), "gameName");
+            var service = new UserService(dataAccess);
+            var JoinResponse = service.join(JoinRequest, auth);
+            ctx.result(serializer.toJson(JoinResponse));
+        }
+        catch (Exception ex) {
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else if (ex.getMessage().equals("Error: Forbidden")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(403).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
+        }
     }
 
     private void clear(Context ctx) {

@@ -1,4 +1,5 @@
 package service;
+import chess.ChessGame;
 import model.*;
 import dataaccess.*;
 
@@ -33,6 +34,10 @@ public class UserService {
         if (checkExisting == null || !Objects.equals(checkExisting.password(), user.password())) {
             throw new DataAccessException("Error: unauthorized");
         }
+        /*if (dataAccess.alreadyLoggedIn(user.username())) {
+            var previousAuth = dataAccess.getAuth(user.username());
+            dataAccess.deleteAuth(previousAuth.authToken());
+        }*/
         var authentication = dataAccess.addAuth(user.username());
         return new RegisterResponse(authentication.username(), authentication.authToken());
     }
@@ -63,5 +68,44 @@ public class UserService {
             throw new DataAccessException("Error: bad request");
         }
         return new CreateResponse(dataAccess.createGame(gameName));
+    }
+
+    public JoinResponse join(JoinData game, String user) throws DataAccessException {
+        var checkExistingUser = dataAccess.checkAuth(user);
+        if (!checkExistingUser) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        if (game.gameID() == null) {
+            throw new DataAccessException("Error: bad request");
+        }
+        UserData thisUser = dataAccess.getUser(user, 1);
+        var existingGame = dataAccess.getGame(game.gameID());
+        String whiteUsername = null;
+        String blackUsername = null;
+        if (game.color() == null) {
+            throw new DataAccessException("Error: bad request");
+        }
+        if (game.color().equals("WHITE")) {
+            whiteUsername = "me";
+        } else if (game.color().equals("BLACK")) {
+            blackUsername = "me";
+        } else {
+            throw new DataAccessException("Error: bad request");
+        }
+        if (existingGame == null) {
+            throw new DataAccessException("Error: bad request");
+        }
+        if (whiteUsername != null) {
+            if (existingGame.whiteUsername() != null) {
+                throw new DataAccessException("Error: Forbidden");
+            }
+        } else {
+            if (existingGame.blackUsername() != null) {
+                throw new DataAccessException("Error: Forbidden");
+            }
+        }
+        var joiningGame = new GameData(game.gameID(), whiteUsername, blackUsername, game.gameName(), new ChessGame());
+        dataAccess.joinGame(thisUser.username(), joiningGame);
+        return new JoinResponse();
     }
 }

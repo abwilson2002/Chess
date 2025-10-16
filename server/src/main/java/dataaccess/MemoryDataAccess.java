@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.*;
 
 import java.util.*;
@@ -25,6 +26,16 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public UserData getUser(String auth, Integer filler) {
+        for (AuthData authentication : authList){
+            if (Objects.equals(authentication.authToken(), auth)) {
+                return getUser(authentication.username());
+            }
+        }
+        return null;
+    }
+
+    @Override
     public AuthData addAuth(String username) {
         AuthData newAuth = new AuthData(username, generateAuth());
         authList.add(newAuth);
@@ -47,6 +58,26 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public boolean alreadyLoggedIn(String username) {
+        for (AuthData authentication : authList){
+            if (Objects.equals(authentication.username(), username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public AuthData getAuth(String username) {
+        for (AuthData authentication : authList){
+            if (Objects.equals(authentication.username(), username)) {
+                return authentication;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public void deleteAuth(String auth) {
         for (AuthData authentication : authList){
             if (Objects.equals(authentication.authToken(), auth)) {
@@ -65,16 +96,34 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public Integer createGame(String gameName) {
-        Integer gameID = gameList.size() + 1;
-        var newGame = new GameData(gameID, null, null, gameName);
+    public Double createGame(String gameName) {
+        Double gameID = gameList.size() + 1.0;
+        var newGame = new GameData(gameID, null, null, gameName, new ChessGame());
         gameList.put(gameID.toString(), newGame);
         return gameID;
     }
 
     @Override
+    public GameData getGame(Double gameID) {
+        return gameList.get(gameID.toString());
+    }
+
+    @Override
+    public void joinGame(String username, GameData game) {
+        String gameID = game.gameID().toString();
+        GameData previousGame = gameList.get(gameID);
+        if (game.blackUsername() == null) {
+            gameList.put(gameID, new GameData(game.gameID(), username, previousGame.blackUsername(), previousGame.gameName(), previousGame.game()));
+        } else {
+            gameList.put(gameID, new GameData(game.gameID(), previousGame.whiteUsername(), username, previousGame.gameName(), previousGame.game()));
+        }
+    }
+
+    @Override
     public void clear() {
         userList.clear();
+        gameList.clear();
+        authList.clear();
     }
 
     private String generateAuth() {
