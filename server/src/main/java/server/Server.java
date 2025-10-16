@@ -90,7 +90,7 @@ public class Server {
     private void logout(Context ctx) {
         try {
             var serializer = new Gson();
-            var user = serializer.fromJson(ctx.body(), AuthData.class);
+            var user = ctx.header("authorization");
             var service = new UserService(dataAccess);
             var logoutResponse = service.logout(user);
             ctx.result(serializer.toJson(logoutResponse));
@@ -104,7 +104,7 @@ public class Server {
     private void list(Context ctx) {
         try {
             var serializer = new Gson();
-            var authToken = serializer.fromJson(ctx.body(), String.class);
+            var authToken = ctx.header("authorization");
             var service = new UserService(dataAccess);
             var listResponse = service.list(authToken);
             ctx.result(serializer.toJson(listResponse));

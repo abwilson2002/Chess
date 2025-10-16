@@ -37,7 +37,7 @@ public class UserService {
         return new RegisterResponse(authentication.username(), authentication.authToken());
     }
 
-    public LogoutResponse logout(AuthData user) throws DataAccessException {
+    public LogoutResponse logout(String user) throws DataAccessException {
         var checkExisting = dataAccess.checkAuth(user);
         if (!checkExisting) {
             throw new DataAccessException("Error: unauthorized");
