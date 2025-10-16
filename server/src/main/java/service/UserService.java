@@ -108,4 +108,8 @@ public class UserService {
         dataAccess.joinGame(thisUser.username(), joiningGame);
         return new JoinResponse();
     }
+
+    public void clear() {
+        dataAccess.clear();
+    }
 }

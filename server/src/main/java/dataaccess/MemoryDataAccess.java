@@ -82,6 +82,7 @@ public class MemoryDataAccess implements DataAccess {
         for (AuthData authentication : authList){
             if (Objects.equals(authentication.authToken(), auth)) {
                 authList.remove(authentication);
+                return;
             }
         }
     }

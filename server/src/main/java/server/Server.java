@@ -97,7 +97,7 @@ public class Server {
         }
         catch (Exception ex) {
             String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(403).result(message);
+            ctx.status(401).result(message);
         }
     }
 
@@ -166,6 +166,8 @@ public class Server {
     }
 
     private void clear(Context ctx) {
+        var service = new UserService(dataAccess);
+        service.clear();
         ctx.result("{}");
     }
 
