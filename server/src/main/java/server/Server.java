@@ -10,12 +10,12 @@ import service.*;
 
 public class Server {
 
-    private final UserService userService;
+    //private final UserService userService;
     DataAccess dataAccess = new MemoryDataAccess();
     private final Javalin javalinObj;
 
     public Server() {
-        userService = new UserService(null);
+        //userService = new UserService(null);
 
 
         javalinObj = Javalin.create(config -> config.staticFiles.add("web"));
@@ -43,7 +43,7 @@ public class Server {
         return javalinObj.port();
     }
 
-    private void register(Context ctx) throws DataAccessException {
+    private void register(Context ctx) {
         try {
             var serializer = new Gson();
             var user = serializer.fromJson(ctx.body(), UserData.class);
@@ -65,7 +65,7 @@ public class Server {
         }
     }
 
-    private void login(Context ctx) throws DataAccessException {
+    private void login(Context ctx) {
         try {
             var serializer = new Gson();
             var user = serializer.fromJson(ctx.body(), UserData.class);
@@ -130,8 +130,7 @@ public class Server {
     }
 
     private void clear(Context ctx) {
-
-        var res = ctx.result("{}");
+        ctx.result("{}");
     }
 
     public void stop() {
