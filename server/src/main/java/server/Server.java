@@ -52,8 +52,16 @@ public class Server {
             ctx.result(serializer.toJson(regResponse));
         }
         catch (Exception ex) {
-            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(403).result(message);
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: User already exists")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(403).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -66,8 +74,16 @@ public class Server {
             ctx.result(serializer.toJson(loginResponse));
         }
         catch (Exception ex) {
-            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(401).result(message);
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -81,15 +97,22 @@ public class Server {
         }
         catch (Exception ex) {
             String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(401).result(message);
+            ctx.status(403).result(message);
         }
     }
 
     private void list(Context ctx) {
-        var serializer = new Gson();
-        var req = serializer.fromJson(ctx.body(), Map.class);
-        var res = Map.of("authToken", req.get("authToken"));
-        ctx.result(serializer.toJson(res));
+        try {
+            var serializer = new Gson();
+            var authToken = serializer.fromJson(ctx.body(), String.class);
+            var service = new UserService(dataAccess);
+            var listResponse = service.list(authToken);
+            ctx.result(serializer.toJson(listResponse));
+        }
+        catch (Exception ex) {
+            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+            ctx.status(403).result(message);
+        }
     }
 
     private void create(Context ctx) {

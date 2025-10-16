@@ -1,9 +1,8 @@
 package dataaccess;
 
 import model.*;
-import java.util.UUID;
-import java.util.HashMap;
-import java.util.HashSet;
+
+import java.util.*;
 
 public class MemoryDataAccess implements DataAccess {
 
@@ -38,8 +37,27 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public boolean checkAuth(String auth) {
+        for (AuthData authentication : authList){
+            if (Objects.equals(authentication.authToken(), auth)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void deleteAuth(AuthData auth) {
         authList.remove(auth);
+    }
+
+    @Override
+    public List<GameData> listGames() {
+        List<GameData> gList = new ArrayList<>(List.of());
+        for (HashMap.Entry<String, GameData> game : gameList.entrySet()) {
+            gList.add(game.getValue());
+        }
+        return gList;
     }
 
     @Override

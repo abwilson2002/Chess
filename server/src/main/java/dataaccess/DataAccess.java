@@ -1,6 +1,8 @@
 package dataaccess;
 import model.*;
 
+import java.util.List;
+
 
 public interface DataAccess {
     void clear();
@@ -8,5 +10,7 @@ public interface DataAccess {
     UserData getUser(String username);
     AuthData addAuth(String username);
     boolean checkAuth(AuthData auth);
+    boolean checkAuth(String auth);
     void deleteAuth(AuthData auth);
+    List<GameData> listGames();
 }
