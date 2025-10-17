@@ -34,10 +34,6 @@ public class UserService {
         if (checkExisting == null || !Objects.equals(checkExisting.password(), user.password())) {
             throw new DataAccessException("Error: unauthorized");
         }
-        /*if (dataAccess.alreadyLoggedIn(user.username())) {
-            var previousAuth = dataAccess.getAuth(user.username());
-            dataAccess.deleteAuth(previousAuth.authToken());
-        }*/
         var authentication = dataAccess.addAuth(user.username());
         return new RegisterResponse(authentication.username(), authentication.authToken());
     }
