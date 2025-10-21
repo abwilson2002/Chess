@@ -19,4 +19,7 @@ public interface DataAccess {
     Double createGame(String gameName);
     GameData getGame(Double gameID);
     void joinGame(String username, GameData game);
+    Integer totalUsers();
+    Integer totalAuths();
+    Integer totalGames();
 }

@@ -130,4 +130,16 @@ public class MemoryDataAccess implements DataAccess {
     private String generateAuth() {
         return UUID.randomUUID().toString();
     }
+
+    public Integer totalUsers() {
+        return userList.size();
+    }
+
+    public Integer totalAuths() {
+        return authList.size();
+    }
+
+    public Integer totalGames() {
+        return gameList.size();
+    }
 }
