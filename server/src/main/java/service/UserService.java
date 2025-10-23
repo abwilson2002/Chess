@@ -17,7 +17,7 @@ public class UserService {
     public RegisterResponse register(UserData user) throws DataAccessException {
         var existingUser = dataAccess.getUser(user.username());
         if (existingUser != null) {
-            throw new DataAccessException("Error: Forbidden");
+            throw new DataAccessException("Error: User already exists");
         }
         if (user.password() == null) {
             throw new DataAccessException("Error: bad request");

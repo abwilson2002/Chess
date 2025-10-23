@@ -52,7 +52,16 @@ public class Server {
             ctx.result(serializer.toJson(regResponse));
         }
         catch (Exception ex) {
-            exception(ex, ctx);
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: User already exists")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(403).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -65,7 +74,16 @@ public class Server {
             ctx.result(serializer.toJson(loginResponse));
         }
         catch (Exception ex) {
-            exception(ex, ctx);
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -107,7 +125,16 @@ public class Server {
             ctx.result(serializer.toJson(createResponse));
         }
         catch (Exception ex) {
-            exception(ex, ctx);
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -116,13 +143,25 @@ public class Server {
             var serializer = new Gson();
             var auth = ctx.header("authorization");
             var input = serializer.fromJson(ctx.body(), Map.class);
-            var joinRequest = new JoinData((Double) input.get("gameID"), (String) input.get("playerColor"), "gameName");
+            var JoinRequest = new JoinData((Double) input.get("gameID"), (String) input.get("playerColor"), "gameName");
             var service = new UserService(dataAccess);
-            var joinResponse = service.join(joinRequest, auth);
-            ctx.result(serializer.toJson(joinResponse));
+            var JoinResponse = service.join(JoinRequest, auth);
+            ctx.result(serializer.toJson(JoinResponse));
         }
         catch (Exception ex) {
-            exception(ex, ctx);
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else if (ex.getMessage().equals("Error: Forbidden")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(403).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -134,26 +173,5 @@ public class Server {
 
     public void stop() {
         javalinObj.stop();
-    }
-
-    public void exception(Exception ex, Context ctx) {
-        switch (ex.getMessage()) {
-            case "Error: bad request" -> {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(400).result(message);
-            }
-            case "Error: unauthorized" -> {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(401).result(message);
-            }
-            case "Error: Forbidden" -> {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(403).result(message);
-            }
-            default -> {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(500).result(message);
-            }
-        }
     }
 }
