@@ -143,10 +143,10 @@ public class Server {
             var serializer = new Gson();
             var auth = ctx.header("authorization");
             var input = serializer.fromJson(ctx.body(), Map.class);
-            var JoinRequest = new JoinData((Double) input.get("gameID"), (String) input.get("playerColor"), "gameName");
+            var joinRequest = new JoinData((Double) input.get("gameID"), (String) input.get("playerColor"), "gameName");
             var service = new UserService(dataAccess);
-            var JoinResponse = service.join(JoinRequest, auth);
-            ctx.result(serializer.toJson(JoinResponse));
+            var joinResponse = service.join(joinRequest, auth);
+            ctx.result(serializer.toJson(joinResponse));
         }
         catch (Exception ex) {
             if (ex.getMessage().equals("Error: bad request")) {
