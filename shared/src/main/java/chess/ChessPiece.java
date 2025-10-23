@@ -104,14 +104,11 @@ public class ChessPiece implements Cloneable {
                 ChessPosition temp = new ChessPosition(rowCheck, colCheck);
                 for (int k = 0; k < 2; k++) {
                     if (withinBoard(rowCheck, colCheck)) {
-                        if (isSpaceFilled(board, temp)) {
-                            if (isSpaceEnemy(board, temp)) {
-                                if (board.allPieces.get(temp).getPieceType() == PieceType.KNIGHT) {
-                                    return false;
-                                }
+                        if (isSpaceFilled(board, temp) & isSpaceEnemy(board, temp)) {
+                            if (board.allPieces.get(temp).getPieceType() == PieceType.KNIGHT) {
+                                return false;
                             }
                         }
-
                     }
                     rowCheck = row + (holder2 * i);
                     colCheck = col + (holder1 * j);
@@ -171,9 +168,7 @@ public class ChessPiece implements Cloneable {
                 for (int j = -1; j < 2; j++) {
                     ChessPosition temp = new ChessPosition(row + i, col + j);
                     if (withinBoard(row + i, col + j)) {
-                        if (!isSpaceFilled(board, temp)) {
-                            possibleMoves.add(new ChessMove(myPosition, temp, null));
-                        } else if (isSpaceEnemy(board, temp)) {
+                        if (!isSpaceFilled(board, temp) | isSpaceEnemy(board, temp)) {
                             possibleMoves.add(new ChessMove(myPosition, temp, null));
                         }
                     }

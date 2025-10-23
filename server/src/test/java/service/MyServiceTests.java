@@ -170,7 +170,7 @@ public class MyServiceTests {
     public void listFail() {
         try {
             var userData = userService.login(backgroundUser);
-            userService.create("hello", userData.authToken());
+            userService.create("lets get this wrong", userData.authToken());
             var games = userService.list(userData.authToken());
             userService.list(userData.username());
         }
@@ -196,12 +196,10 @@ public class MyServiceTests {
     public void createFail() {
         try {
             var userData = userService.login(backgroundUser);
-            userService.create("hello", userData.authToken());
-            var games = userService.list(userData.authToken());
-            userService.list(userData.username());
+            userService.create("hello", userData.username());
         }
         catch (Exception ex) {
-            assert dataAccess.totalGames() == 1;
+            assert dataAccess.totalGames() == 0;
         }
     }
 

@@ -65,22 +65,22 @@ public class ChessBoard implements Cloneable{
     public void resetBoard() {
         allPieces.clear();
         ChessPiece placeHolder = new ChessPiece(TeamColor.WHITE, PieceType.PAWN);
-        int S = 1; //S stands for Side
+        int s = 1; //S stands for Side
         int pawnLine = 2;
         for (int i = 0; i < 2; i++) {
             for (int j = 1; j < 9; j++) {
                 this.allPieces.put(new ChessPosition(pawnLine, j),new ChessPiece(placeHolder.getTeamColor(), PieceType.PAWN));
             }
-            allPieces.put(new ChessPosition(S,1), new ChessPiece(placeHolder.getTeamColor(), PieceType.ROOK));
-            allPieces.put(new ChessPosition(S,2), new ChessPiece(placeHolder.getTeamColor(), PieceType.KNIGHT));
-            allPieces.put(new ChessPosition(S,3), new ChessPiece(placeHolder.getTeamColor(), PieceType.BISHOP));
-            allPieces.put(new ChessPosition(S,4), new ChessPiece(placeHolder.getTeamColor(), PieceType.QUEEN));
-            allPieces.put(new ChessPosition(S,5), new ChessPiece(placeHolder.getTeamColor(), PieceType.KING));
-            allPieces.put(new ChessPosition(S,6), new ChessPiece(placeHolder.getTeamColor(), PieceType.BISHOP));
-            allPieces.put(new ChessPosition(S,7), new ChessPiece(placeHolder.getTeamColor(), PieceType.KNIGHT));
-            allPieces.put(new ChessPosition(S,8), new ChessPiece(placeHolder.getTeamColor(), PieceType.ROOK));
+            allPieces.put(new ChessPosition(s,1), new ChessPiece(placeHolder.getTeamColor(), PieceType.ROOK));
+            allPieces.put(new ChessPosition(s,2), new ChessPiece(placeHolder.getTeamColor(), PieceType.KNIGHT));
+            allPieces.put(new ChessPosition(s,3), new ChessPiece(placeHolder.getTeamColor(), PieceType.BISHOP));
+            allPieces.put(new ChessPosition(s,4), new ChessPiece(placeHolder.getTeamColor(), PieceType.QUEEN));
+            allPieces.put(new ChessPosition(s,5), new ChessPiece(placeHolder.getTeamColor(), PieceType.KING));
+            allPieces.put(new ChessPosition(s,6), new ChessPiece(placeHolder.getTeamColor(), PieceType.BISHOP));
+            allPieces.put(new ChessPosition(s,7), new ChessPiece(placeHolder.getTeamColor(), PieceType.KNIGHT));
+            allPieces.put(new ChessPosition(s,8), new ChessPiece(placeHolder.getTeamColor(), PieceType.ROOK));
             placeHolder = new ChessPiece(TeamColor.BLACK, PieceType.PAWN);
-            S = 8;
+            s = 8;
             pawnLine = 7;
         }
     }

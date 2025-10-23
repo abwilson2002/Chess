@@ -58,16 +58,6 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public boolean alreadyLoggedIn(String username) {
-        for (AuthData authentication : authList){
-            if (Objects.equals(authentication.username(), username)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public AuthData getAuth(String username) {
         for (AuthData authentication : authList){
             if (Objects.equals(authentication.username(), username)) {

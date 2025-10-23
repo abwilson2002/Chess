@@ -12,7 +12,6 @@ public interface DataAccess {
     AuthData addAuth(String username);
     boolean checkAuth(AuthData auth);
     boolean checkAuth(String auth);
-    boolean alreadyLoggedIn(String username);
     AuthData getAuth(String username);
     void deleteAuth(String auth);
     List<GameData> listGames();
