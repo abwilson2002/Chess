@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.*;
+import java.sql.*;
 
 import java.util.*;
 
@@ -10,6 +11,12 @@ public class MemoryDataAccess implements DataAccess {
     private HashMap<String, UserData> userList = new HashMap<>();
     private HashMap<String, GameData> gameList = new HashMap<>();
     private HashSet<AuthData> authList = new HashSet<>();
+
+    @Override
+    public void init() {
+
+    }
+
 
     @Override
     public AuthData addUser(UserData user) {
@@ -21,12 +28,22 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException, SQLException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT * FROM USERS WHERE USERNAME IS ?", Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, username);
+                statement.executeUpdate();
+                var resultUser = statement.getGeneratedKeys();
+                if (resultUser.next()) {
+                    return resultUser;
+                }
+            }
+        }
         return userList.get(username);
     }
 
     @Override
-    public UserData getUser(String auth, Integer filler) {
+    public UserData getUser(String auth, Integer filler) throws DataAccessException, SQLException {
         for (AuthData authentication : authList){
             if (Objects.equals(authentication.authToken(), auth)) {
                 return getUser(authentication.username());
