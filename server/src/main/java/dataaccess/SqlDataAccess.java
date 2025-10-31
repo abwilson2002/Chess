@@ -63,12 +63,43 @@ public class SqlDataAccess implements DataAccess {
     }
 
     @Override
-    public AuthData addUser(UserData user) {
-        return null;
+    public AuthData addUser(UserData user) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("INSERT INTO users (username, password, email) VALUES (?, ?, ?);")) {
+                statement.setString(1, user.username());
+                statement.setString(2, user.password());
+                statement.setString(3, user.email());
+
+                statement.executeUpdate();
+
+                return addAuth(user.username());
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException("Failed to add user", ex);
+        }
     }
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException {
+        String getTheUser = "SELECT username, password, email FROM users WHERE username = ?";
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement(getTheUser)) {
+                statement.setString(1, username);
+
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    String usersUsername = result.getString("username");
+                    String usersPass = result.getString("password");
+                    String usersEmail = result.getString("email");
+
+                    return new UserData(usersUsername, usersPass, usersEmail);
+                }
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException("Error, couldn't get user", ex);
+        }
         return null;
     }
 
