@@ -20,14 +20,14 @@ public class SqlDataAccess implements DataAccess {
                 """;
 
         String authTableCreate = """
-                CREATE TABLE IF NOT EXISTS users (
+                CREATE TABLE IF NOT EXISTS auths (
                 username VARCHAR(255) DEFAULT NULL PRIMARY KEY,
                 authToken VARCHAR(255) DEFAULT NULL,
                 );
                 """;
 
         String gameTableCreate = """
-                CREATE TABLE IF NOT EXISTS users (
+                CREATE TABLE IF NOT EXISTS games (
                 username VARCHAR(255) DEFAULT NULL PRIMARY KEY,
                 password VARCHAR(255) DEFAULT NULL,
                 email VARCHAR(255) DEFAULT NULL
@@ -104,7 +104,36 @@ public class SqlDataAccess implements DataAccess {
     }
 
     @Override
-    public UserData getUser(String auth, Integer filler) {
+    public UserData getUser(String auth, Integer filler) throws DataAccessException {
+        String usersUsername = "";
+        String getTheUser = "SELECT username, authToken FROM auths WHERE auth = ?";
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement(getTheUser)) {
+                statement.setString(1, auth);
+
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    usersUsername = result.getString("username");
+                }
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException("Error, couldn't get user", ex);
+        }
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT username, password, email FROM users WHERE username = ?")) {
+                statement.setString(1, usersUsername);
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    String usersPass = result.getString("password");
+                    String usersEmail = result.getString("email");
+                    return new UserData(usersUsername, usersPass, usersEmail);
+                }
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException("Error, couldn't get user", ex);
+        }
         return null;
     }
 
