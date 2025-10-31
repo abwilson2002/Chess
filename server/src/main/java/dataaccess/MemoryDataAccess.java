@@ -13,17 +13,7 @@ public class MemoryDataAccess implements DataAccess {
     private HashSet<AuthData> authList = new HashSet<>();
 
     @Override
-    public void init() throws DataAccessException, SQLException{
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement(CREATE TABLE IF NOT EXISTS users ( +
-                    username VARCHAR(255) DEFAULT NULL, +
-                    password VARCHAR(255) DEFAULT NULL, +
-                    email VARCHAR(255) DEFAULT NULL);) {
-                statement.executeQuery();
-            }
-        }
-    }
-
+    public void init() {}
 
     @Override
     public AuthData addUser(UserData user) {
@@ -35,25 +25,12 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public UserData getUser(String username) throws DataAccessException, SQLException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("SELECT * FROM users WHERE USERNAME IS ?", Statement.RETURN_GENERATED_KEYS)) {
-                statement.setString(1, username);
-                statement.executeUpdate();
-                var resultUser = statement.getGeneratedKeys();
-                if (resultUser.next()) {
-                    return new UserData(resultUser.getString("username"), resultUser.getString("password"), resultUser.getString("email"));
-                }
-            }
-        }
-        catch (Exception ex) {
-            throw ex;
-        }
-        return null;
+    public UserData getUser(String username) {
+        return userList.get(username);
     }
 
     @Override
-    public UserData getUser(String auth, Integer filler) throws DataAccessException, SQLException {
+    public UserData getUser(String auth, Integer filler) {
         for (AuthData authentication : authList){
             if (Objects.equals(authentication.authToken(), auth)) {
                 return getUser(authentication.username());

@@ -7,10 +7,10 @@ import java.util.List;
 
 
 public interface DataAccess {
-    void init();
+    void init() throws DataAccessException;
     void clear();
-    AuthData addUser(UserData user) throws DataAccessException, SQLException;
-    UserData getUser(String username) throws DataAccessException, SQLException;
+    AuthData addUser(UserData user);
+    UserData getUser(String username);
     UserData getUser(String auth, Integer filler);
     AuthData addAuth(String username);
     boolean checkAuth(AuthData auth);
