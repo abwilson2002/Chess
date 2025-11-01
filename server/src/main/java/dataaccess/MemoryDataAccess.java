@@ -47,11 +47,6 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public boolean checkAuth(AuthData auth) {
-        return authList.contains(auth);
-    }
-
-    @Override
     public boolean checkAuth(String auth) {
         for (AuthData authentication : authList){
             if (Objects.equals(authentication.authToken(), auth)) {

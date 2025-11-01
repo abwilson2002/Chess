@@ -13,7 +13,6 @@ public interface DataAccess {
     UserData getUser(String username) throws DataAccessException;
     UserData getUser(String auth, Integer filler) throws DataAccessException;
     AuthData addAuth(String username) throws DataAccessException;
-    boolean checkAuth(AuthData auth) throws DataAccessException;
     boolean checkAuth(String auth) throws DataAccessException;
     AuthData getAuth(String username) throws DataAccessException;
     void deleteAuth(String auth) throws DataAccessException;

@@ -155,12 +155,19 @@ public class SqlDataAccess implements DataAccess {
     }
 
     @Override
-    public boolean checkAuth(AuthData auth) throws DataAccessException {
-        return false;
-    }
-
-    @Override
     public boolean checkAuth(String auth) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT authToken FROM auths WHERE authToken = ?")) {
+                statement.setString(1, auth);
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    return true;
+                }
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException ("Error, not authorized", ex);
+        }
         return false;
     }
 
