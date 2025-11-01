@@ -223,16 +223,49 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public Integer totalUsers() {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT COUNT(username) FROM users")) {
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    return result.getInt(0);
+                }
+            }
+        }
+        catch (Exception ex) {
+            return 0;
+        }
         return 0;
     }
 
     @Override
     public Integer totalAuths() {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT COUNT(username) FROM auths")) {
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    return result.getInt(0);
+                }
+            }
+        }
+        catch (Exception ex) {
+            return 0;
+        }
         return 0;
     }
 
     @Override
     public Integer totalGames() {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT COUNT(gameID) FROM games")) {
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    return result.getInt(0);
+                }
+            }
+        }
+        catch (Exception ex) {
+            return 0;
+        }
         return 0;
     }
 
