@@ -138,47 +138,59 @@ public class SqlDataAccess implements DataAccess {
     }
 
     @Override
-    public AuthData addAuth(String username) {
-        return null;
+    public AuthData addAuth(String username) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("INSERT INTO auths (username, authToken) VALUES (?, ?);")) {
+                String auth = generateAuth();
+                statement.setString(1, username);
+                statement.setString(2, auth);
+                statement.executeQuery();
+
+                return new AuthData(username, auth);
+            }
+        }
+        catch(Exception ex) {
+            throw new DataAccessException("Error, could not add auth");
+        }
     }
 
     @Override
-    public boolean checkAuth(AuthData auth) {
+    public boolean checkAuth(AuthData auth) throws DataAccessException {
         return false;
     }
 
     @Override
-    public boolean checkAuth(String auth) {
+    public boolean checkAuth(String auth) throws DataAccessException {
         return false;
     }
 
     @Override
-    public AuthData getAuth(String username) {
+    public AuthData getAuth(String username) throws DataAccessException {
         return null;
     }
 
     @Override
-    public void deleteAuth(String auth) {
+    public void deleteAuth(String auth) throws DataAccessException {
 
     }
 
     @Override
-    public List<GameData> listGames() {
+    public List<GameData> listGames() throws DataAccessException {
         return List.of();
     }
 
     @Override
-    public Double createGame(String gameName) {
+    public Double createGame(String gameName) throws DataAccessException {
         return 0.0;
     }
 
     @Override
-    public GameData getGame(Double gameID) {
+    public GameData getGame(Double gameID) throws DataAccessException {
         return null;
     }
 
     @Override
-    public void joinGame(String username, GameData game) {
+    public void joinGame(String username, GameData game) throws DataAccessException {
 
     }
 
@@ -197,5 +209,8 @@ public class SqlDataAccess implements DataAccess {
         return 0;
     }
 
+    private String generateAuth() {
+        return UUID.randomUUID().toString();
+    }
 
 }
