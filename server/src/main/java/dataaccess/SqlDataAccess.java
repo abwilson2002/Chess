@@ -173,12 +173,32 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String username) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT authToken FROM auths WHERE username = ?")) {
+                statement.setString(1, username);
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    String userA = result.getString("authToken");
+                    return new AuthData(username, userA);
+                }
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException ("Error, not authorized", ex);
+        }
         return null;
     }
 
     @Override
     public void deleteAuth(String auth) throws DataAccessException {
-
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("DELETE FROM auths WHERE authToken = ?")) {
+                statement.setString(1, auth);
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException ("Error, not authorized", ex);
+        }
     }
 
     @Override
