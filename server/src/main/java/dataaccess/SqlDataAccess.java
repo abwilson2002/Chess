@@ -13,25 +13,25 @@ public class SqlDataAccess implements DataAccess {
     public void init() throws DataAccessException {
         String userTableCreate = """
                 CREATE TABLE IF NOT EXISTS users (
-                username VARCHAR(255) DEFAULT NULL PRIMARY KEY,
-                password VARCHAR(255) DEFAULT NULL,
-                email VARCHAR(255) DEFAULT NULL
-                );
+                username VARCHAR(255) UNIQUE PRIMARY KEY,
+                password VARCHAR(255) NULL,
+                email VARCHAR(255) NULL
+                )
                 """;
 
         String authTableCreate = """
                 CREATE TABLE IF NOT EXISTS auths (
-                username VARCHAR(255) DEFAULT NULL PRIMARY KEY,
-                authToken VARCHAR(255) DEFAULT NULL,
-                );
+                username VARCHAR(255) UNIQUE PRIMARY KEY,
+                authToken VARCHAR(255) NULL,
+                )
                 """;
 
         String gameTableCreate = """
                 CREATE TABLE IF NOT EXISTS games (
-                username VARCHAR(255) DEFAULT NULL PRIMARY KEY,
-                password VARCHAR(255) DEFAULT NULL,
-                email VARCHAR(255) DEFAULT NULL
-                );
+                username VARCHAR(255) UNIQUE PRIMARY KEY,
+                password VARCHAR(255) NULL,
+                email VARCHAR(255) NULL
+                )
                 """;
         Map<Integer, String> tableCreates = new HashMap<Integer, String>();
         tableCreates.put(0, userTableCreate);
@@ -53,7 +53,7 @@ public class SqlDataAccess implements DataAccess {
     @Override
     public void clear() {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("DROP users, auths, games")) {
+            try (var statement = conn.prepareStatement("DROP TABLE users, auths, games")) {
                 statement.executeUpdate();
             }
         }
@@ -105,29 +105,14 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String auth, Integer filler) throws DataAccessException {
-        String usersUsername = "";
-        String getTheUser = "SELECT username, authToken FROM auths WHERE auth = ?";
+        String getTheUser = "SELECT L.username, R.authToken FROM users as L JOIN auths as R ON L.username = R.username WHERE authToken = ?";
         try (var conn = DatabaseManager.getConnection()) {
             try (var statement = conn.prepareStatement(getTheUser)) {
                 statement.setString(1, auth);
 
                 var result = statement.executeQuery();
                 if (result.next()) {
-                    usersUsername = result.getString("username");
-                }
-            }
-        }
-        catch (Exception ex) {
-            throw new DataAccessException("Error, couldn't get user", ex);
-        }
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("SELECT username, password, email FROM users WHERE username = ?")) {
-                statement.setString(1, usersUsername);
-                var result = statement.executeQuery();
-                if (result.next()) {
-                    String usersPass = result.getString("password");
-                    String usersEmail = result.getString("email");
-                    return new UserData(usersUsername, usersPass, usersEmail);
+                    String usersUsername = result.getString("username");
                 }
             }
         }
