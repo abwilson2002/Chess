@@ -18,7 +18,7 @@ public class MyServiceTests {
     static GameData firstGame = new GameData(1.0, null, null, "test", new ChessGame());
     static GameData secondGame = new GameData(2.0, null, null, "tester", new ChessGame());
     static JoinData firstJoin = new JoinData(1.0, "WHITE", "hello");
-    static DataAccess dataAccess = new MemoryDataAccess();
+    static DataAccess dataAccess = new SQLDataAccess();
     static UserService userService = new UserService(dataAccess);
 
 
