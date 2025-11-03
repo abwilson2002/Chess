@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
+import dataaccess.SqlDataAccess;
 import model.*;
 import org.junit.jupiter.api.*;
 import passoff.model.*;
@@ -18,7 +19,7 @@ public class MyServiceTests {
     static GameData firstGame = new GameData(1.0, null, null, "test", new ChessGame());
     static GameData secondGame = new GameData(2.0, null, null, "tester", new ChessGame());
     static JoinData firstJoin = new JoinData(1.0, "WHITE", "hello");
-    static DataAccess dataAccess = new SQLDataAccess();
+    static DataAccess dataAccess = new SqlDataAccess();
     static UserService userService = new UserService(dataAccess);
 
 

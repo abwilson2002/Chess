@@ -36,7 +36,7 @@ public class SqlDataAccess implements DataAccess {
                 game VARCHAR(255) NULL
                 )
                 """;
-        Map<Integer, String> tableCreates = new HashMap<Integer, String>();
+        Map<Integer, String> tableCreates = new HashMap<>();
         tableCreates.put(0, userTableCreate);
         tableCreates.put(1, authTableCreate);
         tableCreates.put(2, gameTableCreate);
@@ -266,10 +266,10 @@ public class SqlDataAccess implements DataAccess {
     @Override
     public Integer totalUsers() {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("SELECT COUNT(username) FROM users")) {
+            try (var statement = conn.prepareStatement("SELECT COUNT(username) as count FROM users")) {
                 var result = statement.executeQuery();
                 if (result.next()) {
-                    return result.getInt(0);
+                    return result.getInt("count");
                 }
             }
         }
@@ -282,10 +282,10 @@ public class SqlDataAccess implements DataAccess {
     @Override
     public Integer totalAuths() {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("SELECT COUNT(username) FROM auths")) {
+            try (var statement = conn.prepareStatement("SELECT COUNT(username) as count FROM auths")) {
                 var result = statement.executeQuery();
                 if (result.next()) {
-                    return result.getInt(0);
+                    return result.getInt("count");
                 }
             }
         }
@@ -298,10 +298,10 @@ public class SqlDataAccess implements DataAccess {
     @Override
     public Integer totalGames() {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("SELECT COUNT(gameID) FROM games")) {
+            try (var statement = conn.prepareStatement("SELECT COUNT(gameID) as count FROM games")) {
                 var result = statement.executeQuery();
                 if (result.next()) {
-                    return result.getInt(0);
+                    return result.getInt("count");
                 }
             }
         }
