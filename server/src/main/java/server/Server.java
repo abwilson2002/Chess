@@ -11,7 +11,7 @@ import service.*;
 public class Server {
 
     //private final UserService userService;
-    DataAccess dataAccess = new SQLDataAccess();
+    DataAccess dataAccess = new SqlDataAccess();
     private final Javalin javalinObj;
 
     public Server() {

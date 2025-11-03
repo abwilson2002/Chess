@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import model.*;
 import java.sql.*;
 import java.util.*;
@@ -13,24 +14,26 @@ public class SqlDataAccess implements DataAccess {
     public void init() throws DataAccessException {
         String userTableCreate = """
                 CREATE TABLE IF NOT EXISTS users (
-                username VARCHAR(255) UNIQUE PRIMARY KEY,
-                password VARCHAR(255) NULL,
-                email VARCHAR(255) NULL
+                username VARCHAR(50) UNIQUE PRIMARY KEY,
+                password VARCHAR(50) NULL,
+                email VARCHAR(100) NULL
                 )
                 """;
 
         String authTableCreate = """
                 CREATE TABLE IF NOT EXISTS auths (
-                username VARCHAR(255) UNIQUE PRIMARY KEY,
+                username VARCHAR(50) UNIQUE PRIMARY KEY,
                 authToken VARCHAR(255) NULL,
                 )
                 """;
 
         String gameTableCreate = """
                 CREATE TABLE IF NOT EXISTS games (
-                username VARCHAR(255) UNIQUE PRIMARY KEY,
-                password VARCHAR(255) NULL,
-                email VARCHAR(255) NULL
+                gameID DOUBLE UNIQUE PRIMARY KEY,
+                whiteUsername VARCHAR(50) NULL,
+                blackUsername VARCHAR(50) NULL,
+                gameName VARCHAR(255) NULL,
+                game VARCHAR(255) NULL
                 )
                 """;
         Map<Integer, String> tableCreates = new HashMap<Integer, String>();
@@ -188,16 +191,70 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public List<GameData> listGames() throws DataAccessException {
-        return List.of();
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT * FROM games")) {
+                List<GameData> gameList = new ArrayList<>(List.of());
+                var result = statement.executeQuery();
+                while (result.next()) {
+                    Double gameID = result.getDouble("gameID");
+                    String whiteUsername = result.getString("whiteUsername");
+                    String blackUsername = result.getString("blackUsername");
+                    String gameName = result.getString("gameName");
+                    String game = result.getString("game");
+                    var serializer = new Gson();
+                    var fullGame = serializer.fromJson(game, ChessGame.class);
+                    GameData nextGame = new GameData(gameID, whiteUsername, blackUsername, gameName, fullGame);
+                    gameList.add(nextGame);
+                }
+                return gameList;
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException ("Error, not authorized", ex);
+        }
     }
 
     @Override
     public Double createGame(String gameName) throws DataAccessException {
-        return 0.0;
+        double numberOfGames = totalGames();
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("INSERT INTO games (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, NULL, NULL, ?, ?)")) {
+                statement.setDouble(1, numberOfGames);
+                statement.setString(2, gameName);
+                var serializer = new Gson();
+                var game = new ChessGame();
+                var newGame = serializer.toJson(game);
+                statement.setString(3, newGame);
+                statement.executeQuery();
+
+                return numberOfGames;
+            }
+        }
+        catch(Exception ex) {
+            throw new DataAccessException("Error, could not add auth");
+        }
     }
 
     @Override
     public GameData getGame(Double gameID) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("SELECT * FROM games WHERE gameID = ?")) {
+                statement.setDouble(1, gameID);
+                var result = statement.executeQuery();
+                if (result.next()) {
+                    String whiteUsername = result.getString("whiteUsername");
+                    String blackUsername = result.getString("blackUsername");
+                    String gameName = result.getString("gameName");
+                    String game = result.getString("game");
+                    var serializer = new Gson();
+                    var fullGame = serializer.fromJson(game, ChessGame.class);
+                    return new GameData(gameID, whiteUsername, blackUsername, gameName, fullGame);
+                }
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException ("Error, not authorized", ex);
+        }
         return null;
     }
 
