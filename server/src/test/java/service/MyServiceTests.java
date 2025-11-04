@@ -16,9 +16,9 @@ public class MyServiceTests {
     static UserData backgroundUser = new UserData("ghostUser", "casper", "shhh");
     static UserData baseUser = new UserData("user1", "pass1", "1");
     static UserData secondUser = new UserData("user2", "pass2", "2");
-    static GameData firstGame = new GameData(1.0, null, null, "test", new ChessGame());
-    static GameData secondGame = new GameData(2.0, null, null, "tester", new ChessGame());
-    static JoinData firstJoin = new JoinData(1.0, "WHITE", "hello");
+    static GameData firstGame = new GameData(0.0, null, null, "test", new ChessGame());
+    static GameData secondGame = new GameData(1.0, null, null, "tester", new ChessGame());
+    static JoinData firstJoin = new JoinData(0.0, "WHITE", "hello");
     static DataAccess dataAccess = new SqlDataAccess();
     static UserService userService = new UserService(dataAccess);
 
@@ -26,8 +26,14 @@ public class MyServiceTests {
     public static void init() {
     }
 
+    @BeforeAll
+    public static void start() throws DataAccessException {
+        dataAccess.init();
+    }
+
     @BeforeEach
-    public void start() throws DataAccessException {
+    public void setup() throws DataAccessException {
+        dataAccess.clear();
         var startingInfo = userService.register(backgroundUser);
     }
 

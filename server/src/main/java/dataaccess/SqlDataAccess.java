@@ -58,8 +58,10 @@ public class SqlDataAccess implements DataAccess {
     @Override
     public void clear() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("DROP TABLE users, auths, games")) {
-                statement.executeUpdate();
+            try (var statement = conn.createStatement()) {
+                statement.executeUpdate("DELETE FROM users");
+                statement.executeUpdate("DELETE FROM auths");
+                statement.executeUpdate("DELETE FROM games");
             }
         }
         catch(Exception ex) {
@@ -187,7 +189,7 @@ public class SqlDataAccess implements DataAccess {
         try (var conn = DatabaseManager.getConnection()) {
             try (var statement = conn.prepareStatement("DELETE FROM auths WHERE authToken = ?")) {
                 statement.setString(1, auth);
-                statement.executeQuery();
+                statement.executeUpdate();
             }
         }
         catch (Exception ex) {
