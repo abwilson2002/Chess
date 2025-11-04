@@ -74,7 +74,7 @@ public class UserService {
         if (game.gameID() == null) {
             throw new DataAccessException("Error: bad request");
         }
-        UserData thisUser = dataAccess.getUser(user, 1);
+        AuthData thisUser = dataAccess.getUser(user, 1);
         var existingGame = dataAccess.getGame(game.gameID());
         String whiteUsername = null;
         String blackUsername = null;

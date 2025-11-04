@@ -11,11 +11,22 @@ import service.*;
 public class Server {
 
     //private final UserService userService;
-    DataAccess dataAccess = new SqlDataAccess();
+
+
+    public DataAccess dataAccess;
+
     private final Javalin javalinObj;
 
     public Server() {
         //userService = new UserService(null);
+        dataAccess = new SqlDataAccess();
+        try {
+            DatabaseManager.createDatabase();
+            dataAccess.init();
+        }
+        catch (DataAccessException ex) {
+            System.err.println("Failed to create tables");
+        }
 
 
         javalinObj = Javalin.create(config -> config.staticFiles.add("web"));
@@ -168,6 +179,11 @@ public class Server {
     private void clear(Context ctx) {
         var service = new UserService(dataAccess);
         service.clear();
+        try {
+            dataAccess.init();
+        } catch (Exception ex){
+            int filler = 1;
+        }
         ctx.result("{}");
     }
 

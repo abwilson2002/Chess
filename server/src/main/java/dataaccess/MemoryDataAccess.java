@@ -30,10 +30,10 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public UserData getUser(String auth, Integer filler) {
+    public AuthData getUser(String auth, Integer filler) {
         for (AuthData authentication : authList){
             if (Objects.equals(authentication.authToken(), auth)) {
-                return getUser(authentication.username());
+                return authentication;
             }
         }
         return null;

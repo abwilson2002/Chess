@@ -11,7 +11,7 @@ public interface DataAccess {
     void clear();
     AuthData addUser(UserData user) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
-    UserData getUser(String auth, Integer filler) throws DataAccessException;
+    AuthData getUser(String auth, Integer filler) throws DataAccessException;
     AuthData addAuth(String username) throws DataAccessException;
     boolean checkAuth(String auth) throws DataAccessException;
     AuthData getAuth(String username) throws DataAccessException;

@@ -23,7 +23,7 @@ public class SqlDataAccess implements DataAccess {
         String authTableCreate = """
                 CREATE TABLE IF NOT EXISTS auths (
                 username VARCHAR(50) UNIQUE PRIMARY KEY,
-                authToken VARCHAR(255) NULL,
+                authToken VARCHAR(255) NULL
                 )
                 """;
 
@@ -33,7 +33,7 @@ public class SqlDataAccess implements DataAccess {
                 whiteUsername VARCHAR(50) NULL,
                 blackUsername VARCHAR(50) NULL,
                 gameName VARCHAR(255) NULL,
-                game VARCHAR(255) NULL
+                game TEXT NULL
                 )
                 """;
         Map<Integer, String> tableCreates = new HashMap<>();
@@ -42,8 +42,8 @@ public class SqlDataAccess implements DataAccess {
         tableCreates.put(2, gameTableCreate);
         for (int i = 0; i < 3; i++) {
             try (var conn = DatabaseManager.getConnection()) {
-                try (var statement = conn.prepareStatement(tableCreates.get(i))) {
-                    statement.executeUpdate();
+                try (var statement = conn.createStatement()) {
+                    statement.executeUpdate(tableCreates.get(i));
                 }
             } catch (SQLException ex) {
                 throw new DataAccessException("Failed to create table", ex);
@@ -107,7 +107,7 @@ public class SqlDataAccess implements DataAccess {
     }
 
     @Override
-    public UserData getUser(String auth, Integer filler) throws DataAccessException {
+    public AuthData getUser(String auth, Integer filler) throws DataAccessException {
         String getTheUser = "SELECT L.username, R.authToken FROM users as L JOIN auths as R ON L.username = R.username WHERE authToken = ?";
         try (var conn = DatabaseManager.getConnection()) {
             try (var statement = conn.prepareStatement(getTheUser)) {
@@ -116,6 +116,7 @@ public class SqlDataAccess implements DataAccess {
                 var result = statement.executeQuery();
                 if (result.next()) {
                     String usersUsername = result.getString("username");
+                    return new AuthData(usersUsername, auth);
                 }
             }
         }
@@ -132,7 +133,7 @@ public class SqlDataAccess implements DataAccess {
                 String auth = generateAuth();
                 statement.setString(1, username);
                 statement.setString(2, auth);
-                statement.executeQuery();
+                statement.executeUpdate();
 
                 return new AuthData(username, auth);
             }
@@ -182,6 +183,7 @@ public class SqlDataAccess implements DataAccess {
         try (var conn = DatabaseManager.getConnection()) {
             try (var statement = conn.prepareStatement("DELETE FROM auths WHERE authToken = ?")) {
                 statement.setString(1, auth);
+                statement.executeQuery();
             }
         }
         catch (Exception ex) {
@@ -225,7 +227,7 @@ public class SqlDataAccess implements DataAccess {
                 var game = new ChessGame();
                 var newGame = serializer.toJson(game);
                 statement.setString(3, newGame);
-                statement.executeQuery();
+                statement.executeUpdate();
 
                 return numberOfGames;
             }
@@ -260,7 +262,21 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public void joinGame(String username, GameData game) throws DataAccessException {
-
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement("UPDATE games SET ? = ? WHERE gameName = ?")) {
+                if (game.whiteUsername() != null) {
+                    statement.setString(1, "whiteUsername");
+                } else {
+                    statement.setString(1, "blackUsername");
+                }
+                statement.setString(2, username);
+                statement.setString(3, game.gameName());
+                var result = statement.executeUpdate();
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException ("Error, not authorized", ex);
+        }
     }
 
     @Override
