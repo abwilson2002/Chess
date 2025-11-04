@@ -1,17 +1,18 @@
-package service;
+package dataaccess;
 
 import chess.ChessGame;
-import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccess;
-import dataaccess.SqlDataAccess;
-import model.*;
-import org.junit.jupiter.api.*;
-import passoff.model.*;
-import java.util.*;
+import model.GameData;
+import model.JoinData;
+import model.UserData;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import service.UserService;
 
-public class MyServiceTests {
+import java.util.Objects;
+
+public class MyDatabaseServiceTests {
 
     static UserData backgroundUser = new UserData("ghostUser", "casper", "shhh");
     static UserData baseUser = new UserData("user1", "pass1", "1");
@@ -19,7 +20,7 @@ public class MyServiceTests {
     static GameData firstGame = new GameData(1.0, null, null, "test", new ChessGame());
     static GameData secondGame = new GameData(2.0, null, null, "tester", new ChessGame());
     static JoinData firstJoin = new JoinData(1.0, "WHITE", "hello");
-    static DataAccess dataAccess = new MemoryDataAccess();
+    static DataAccess dataAccess = new SqlDataAccess();
     static UserService userService = new UserService(dataAccess);
 
 
