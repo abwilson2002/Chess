@@ -246,4 +246,15 @@ public class MyDatabaseServiceTests {
         assert dataAccess.totalAuths() == 0;
         assert dataAccess.totalGames() == 0;
     }
+
+    @Test
+    public void clearFail() throws DataAccessException {
+        try {
+            dataAccess.clear();
+            assert true;
+        }
+        catch (Exception ex) {
+            assert false;
+        }
+    }
 }
