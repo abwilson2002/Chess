@@ -32,7 +32,7 @@ public class MyServiceTests {
     }
 
     @AfterEach
-    public void close() {
+    public void close() throws DataAccessException {
         dataAccess.clear();
     }
 
@@ -233,7 +233,7 @@ public class MyServiceTests {
     }
 
     @Test
-    public void clearSuccess() {
+    public void clearSuccess() throws DataAccessException {
         dataAccess.clear();
         assert dataAccess.totalUsers() == 0;
         assert dataAccess.totalAuths() == 0;

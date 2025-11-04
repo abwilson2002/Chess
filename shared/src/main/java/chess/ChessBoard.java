@@ -14,12 +14,16 @@ import chess.ChessPiece.PieceType;
  */
 public class ChessBoard implements Cloneable{
 
-    public Map<ChessPosition, ChessPiece> allPieces = new HashMap<>();
+    private Map<String, ChessPiece> allPieces = new HashMap<>();
     boolean whitePawnDoubleMove = false;
     boolean blackPawnDoubleMove = false;
     public ChessPosition enPassantPosition;
 
     public ChessBoard() {
+    }
+
+    String positionToString(ChessPosition position) {
+        return position.getRow() + "_" + position.getColumn();
     }
 
     @Override
@@ -43,7 +47,7 @@ public class ChessBoard implements Cloneable{
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        allPieces.put(position, piece);
+        allPieces.put(positionToString(position), piece);
     }
 
     /**
@@ -54,7 +58,7 @@ public class ChessBoard implements Cloneable{
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return allPieces.get(position);
+        return allPieces.get(positionToString(position));
     }
 
 
@@ -69,16 +73,16 @@ public class ChessBoard implements Cloneable{
         int pawnLine = 2;
         for (int i = 0; i < 2; i++) {
             for (int j = 1; j < 9; j++) {
-                this.allPieces.put(new ChessPosition(pawnLine, j),new ChessPiece(placeHolder.getTeamColor(), PieceType.PAWN));
+                this.allPieces.put(positionToString(new ChessPosition(pawnLine, j)),new ChessPiece(placeHolder.getTeamColor(), PieceType.PAWN));
             }
-            allPieces.put(new ChessPosition(s,1), new ChessPiece(placeHolder.getTeamColor(), PieceType.ROOK));
-            allPieces.put(new ChessPosition(s,2), new ChessPiece(placeHolder.getTeamColor(), PieceType.KNIGHT));
-            allPieces.put(new ChessPosition(s,3), new ChessPiece(placeHolder.getTeamColor(), PieceType.BISHOP));
-            allPieces.put(new ChessPosition(s,4), new ChessPiece(placeHolder.getTeamColor(), PieceType.QUEEN));
-            allPieces.put(new ChessPosition(s,5), new ChessPiece(placeHolder.getTeamColor(), PieceType.KING));
-            allPieces.put(new ChessPosition(s,6), new ChessPiece(placeHolder.getTeamColor(), PieceType.BISHOP));
-            allPieces.put(new ChessPosition(s,7), new ChessPiece(placeHolder.getTeamColor(), PieceType.KNIGHT));
-            allPieces.put(new ChessPosition(s,8), new ChessPiece(placeHolder.getTeamColor(), PieceType.ROOK));
+            allPieces.put(positionToString(new ChessPosition(s,1)), new ChessPiece(placeHolder.getTeamColor(), PieceType.ROOK));
+            allPieces.put(positionToString(new ChessPosition(s,2)), new ChessPiece(placeHolder.getTeamColor(), PieceType.KNIGHT));
+            allPieces.put(positionToString(new ChessPosition(s,3)), new ChessPiece(placeHolder.getTeamColor(), PieceType.BISHOP));
+            allPieces.put(positionToString(new ChessPosition(s,4)), new ChessPiece(placeHolder.getTeamColor(), PieceType.QUEEN));
+            allPieces.put(positionToString(new ChessPosition(s,5)), new ChessPiece(placeHolder.getTeamColor(), PieceType.KING));
+            allPieces.put(positionToString(new ChessPosition(s,6)), new ChessPiece(placeHolder.getTeamColor(), PieceType.BISHOP));
+            allPieces.put(positionToString(new ChessPosition(s,7)), new ChessPiece(placeHolder.getTeamColor(), PieceType.KNIGHT));
+            allPieces.put(positionToString(new ChessPosition(s,8)), new ChessPiece(placeHolder.getTeamColor(), PieceType.ROOK));
             placeHolder = new ChessPiece(TeamColor.BLACK, PieceType.PAWN);
             s = 8;
             pawnLine = 7;
@@ -100,7 +104,7 @@ public class ChessBoard implements Cloneable{
     }
 
     private String pieceString(ChessPosition position) {
-        ChessPiece temp = allPieces.get(position);
+        ChessPiece temp = allPieces.get(positionToString(position));
         if (temp == null) {
             return " ";
         }
@@ -136,12 +140,16 @@ public class ChessBoard implements Cloneable{
         return " ";
     }
 
+    public Map<String, ChessPiece> getAllPieces() {
+        return allPieces;
+    }
+
     @Override
     public ChessBoard clone() {
         try {
             ChessBoard clone = (ChessBoard) super.clone();
-            clone.allPieces = new HashMap<ChessPosition, ChessPiece>();
-            for (Map.Entry<ChessPosition, ChessPiece> piece : this.allPieces.entrySet()) {
+            clone.allPieces = new HashMap<String, ChessPiece>();
+            for (Map.Entry<String, ChessPiece> piece : this.allPieces.entrySet()) {
                 clone.allPieces.put(piece.getKey(), piece.getValue().clone());
             }
             clone.enPassantPosition = this.enPassantPosition;

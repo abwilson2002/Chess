@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface DataAccess {
     void init() throws DataAccessException;
-    void clear();
+    void clear() throws DataAccessException;
     AuthData addUser(UserData user) throws DataAccessException;
     UserData getUser(String username) throws DataAccessException;
     AuthData getUser(String auth, Integer filler) throws DataAccessException;

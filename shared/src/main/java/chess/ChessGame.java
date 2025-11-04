@@ -15,10 +15,10 @@ public class ChessGame {
 
     Boolean isWhiteTurn;
     ChessBoard board;
-    ChessPiece whiteKing;
-    ChessPosition whiteKingPos;
-    ChessPiece blackKing;
-    ChessPosition blackKingPos;
+    transient ChessPiece whiteKing;
+    transient ChessPosition whiteKingPos;
+    transient ChessPiece blackKing;
+    transient ChessPosition blackKingPos;
     boolean whiteInCheck = false;
     boolean blackInCheck = false;
     boolean gameOver = false;
@@ -41,9 +41,9 @@ public class ChessGame {
         isWhiteTurn = true;
         board = new ChessBoard();
         board.resetBoard();
-        whiteKing = board.allPieces.get(new ChessPosition(1,5));
+        whiteKing = board.getPiece(new ChessPosition(1,5));
         whiteKingPos = new ChessPosition(1,5);
-        blackKing = board.allPieces.get(new ChessPosition(8,5));
+        blackKing = board.getPiece(new ChessPosition(8,5));
         blackKingPos = new ChessPosition(8,5);
     }
 
@@ -56,6 +56,13 @@ public class ChessGame {
         } else {
             return TeamColor.BLACK;
         }
+    }
+
+    private ChessPosition stringToPosition(String key) {
+        String[] parts = key.split("_");
+        int row = Integer.parseInt(parts[0]);
+        int col = Integer.parseInt(parts[1]);
+        return new ChessPosition(row, col);
     }
 
     /**
@@ -88,7 +95,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        ChessPiece tempPiece = board.allPieces.get(startPosition);
+        ChessPiece tempPiece = board.getPiece(startPosition);
         Collection<ChessMove> realPossibleMoves = new ArrayList<>();
         if (tempPiece == null) {
             return realPossibleMoves;
@@ -97,15 +104,15 @@ public class ChessGame {
         for (ChessMove move : possibleMoves) {
             ChessGame temp = new ChessGame();
             temp.setBoard(this.board);
-            tempPiece = temp.board.allPieces.get(startPosition);
+            tempPiece = temp.board.getPiece(startPosition);
             ChessPiece king = temp.whiteKing;
             ChessPosition kingPosition = temp.whiteKingPos;
             if (tempPiece.getTeamColor() == TeamColor.BLACK) {
                 king = temp.blackKing;
                 kingPosition = temp.blackKingPos;
             }
-            temp.board.allPieces.put(move.getEndPosition(), tempPiece);
-            temp.board.allPieces.remove(move.getStartPosition());
+            temp.board.getAllPieces().put(board.positionToString(move.getEndPosition()), tempPiece);
+            temp.board.getAllPieces().remove(board.positionToString(move.getStartPosition()));
             if (tempPiece.getPieceType() == ChessPiece.PieceType.KING) {
                 kingPosition = move.getEndPosition();
                 king = tempPiece;
@@ -119,13 +126,13 @@ public class ChessGame {
     }
 
     public void getKingPosition() {
-        for (Map.Entry<ChessPosition, ChessPiece> piece : board.allPieces.entrySet()) {
+        for (Map.Entry<String, ChessPiece> piece : board.getAllPieces().entrySet()) {
             if (piece.getValue().type == ChessPiece.PieceType.KING) {
                 if (piece.getValue().faction == TeamColor.WHITE) {
-                    whiteKingPos = piece.getKey();
+                    whiteKingPos = stringToPosition(piece.getKey());
                     whiteKing = piece.getValue();
                 } else {
-                    blackKingPos = piece.getKey();
+                    blackKingPos = stringToPosition(piece.getKey());
                     blackKing = piece.getValue();
                 }
             }
@@ -133,7 +140,7 @@ public class ChessGame {
     }
 
     public boolean isTeamsTurn(ChessPosition target) {
-        TeamColor targetFaction = board.allPieces.get(target).getTeamColor();
+        TeamColor targetFaction = board.getPiece(target).getTeamColor();
         if ((isWhiteTurn & targetFaction == TeamColor.WHITE) || (!isWhiteTurn & targetFaction == TeamColor.BLACK)) {
             return true;
         }
@@ -152,7 +159,7 @@ public class ChessGame {
             throw new InvalidMoveException();
         }
 
-        ChessPiece movingPiece = board.allPieces.get(move.getStartPosition());
+        ChessPiece movingPiece = board.getPiece(move.getStartPosition());
         ChessPosition start = move.getStartPosition();
         ChessPosition end = move.getEndPosition();
         TeamColor side = ChessGame.TeamColor.WHITE;
@@ -171,9 +178,9 @@ public class ChessGame {
                     if (moveDistance == 2) {
                         rookSpot = 1;
                     }
-                    ChessPiece movingRook = board.allPieces.get(new ChessPosition(movingRow, rookSpot));
-                    board.allPieces.put(new ChessPosition(movingRow, (end.getColumn() + (moveDistance / 2))), movingRook);
-                    board.allPieces.remove(new ChessPosition(movingRow, rookSpot));
+                    ChessPiece movingRook = board.getAllPieces().get(board.positionToString(new ChessPosition(movingRow, rookSpot)));
+                    board.getAllPieces().put(board.positionToString(new ChessPosition(movingRow, (end.getColumn() + (moveDistance / 2)))), movingRook);
+                    board.getAllPieces().remove(board.positionToString(new ChessPosition(movingRow, rookSpot)));
                     movingRook.moved = true;
                 }
             }
@@ -181,7 +188,7 @@ public class ChessGame {
             if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
                 if ((movingPiece.faction == TeamColor.WHITE & board.blackPawnDoubleMove) || (movingPiece.faction == TeamColor.BLACK & board.whitePawnDoubleMove)) {
                     if (end.getColumn() == board.enPassantPosition.getColumn() & (end.getRow() == 3 || end.getRow() == 6)) {
-                        board.allPieces.remove(board.enPassantPosition);
+                        board.getAllPieces().remove(board.positionToString(board.enPassantPosition));
                     }
                 }
                 if (abs((start.getRow()) - (end.getRow())) == 2) {
@@ -201,8 +208,8 @@ public class ChessGame {
             }
         }
         movingPiece.moved = true;
-        board.allPieces.put(end, movingPiece);
-        board.allPieces.remove(move.getStartPosition());
+        board.getAllPieces().put(board.positionToString(end), movingPiece);
+        board.getAllPieces().remove(board.positionToString(move.getStartPosition()));
         isInCheck(TeamColor.WHITE);
         isInCheck(TeamColor.BLACK);
         isWhiteTurn = !isWhiteTurn;
@@ -252,9 +259,9 @@ public class ChessGame {
     public boolean noMovesPossible(TeamColor teamColor) {
         boolean noMovesPossible = true;
         Set<ChessPosition> allFactionPieces = new HashSet<>();
-        for (Map.Entry<ChessPosition, ChessPiece> piece : board.allPieces.entrySet()) {
+        for (Map.Entry<String, ChessPiece> piece : board.getAllPieces().entrySet()) {
             if (piece.getValue().faction == teamColor) {
-                allFactionPieces.add(piece.getKey());
+                allFactionPieces.add(stringToPosition(piece.getKey()));
             }
         }
         for (ChessPosition piece : allFactionPieces) {

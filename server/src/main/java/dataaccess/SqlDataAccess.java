@@ -3,6 +3,8 @@ package dataaccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.*;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.sql.*;
 import java.util.*;
 
@@ -15,15 +17,15 @@ public class SqlDataAccess implements DataAccess {
         String userTableCreate = """
                 CREATE TABLE IF NOT EXISTS users (
                 username VARCHAR(50) UNIQUE PRIMARY KEY,
-                password VARCHAR(50) NULL,
+                password TEXT NULL,
                 email VARCHAR(100) NULL
                 )
                 """;
 
         String authTableCreate = """
                 CREATE TABLE IF NOT EXISTS auths (
-                username VARCHAR(50) UNIQUE PRIMARY KEY,
-                authToken VARCHAR(255) NULL
+                username VARCHAR(50) NULL,
+                authToken VARCHAR(255) UNIQUE PRIMARY KEY
                 )
                 """;
 
@@ -54,14 +56,14 @@ public class SqlDataAccess implements DataAccess {
 
 
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var statement = conn.prepareStatement("DROP TABLE users, auths, games")) {
                 statement.executeUpdate();
             }
         }
         catch(Exception ex) {
-            return;
+            throw new DataAccessException("Error: Failed to clear tables");
         }
     }
 
@@ -69,8 +71,10 @@ public class SqlDataAccess implements DataAccess {
     public AuthData addUser(UserData user) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var statement = conn.prepareStatement("INSERT INTO users (username, password, email) VALUES (?, ?, ?);")) {
+                String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+
                 statement.setString(1, user.username());
-                statement.setString(2, user.password());
+                statement.setString(2, hashedPassword);
                 statement.setString(3, user.email());
 
                 statement.executeUpdate();
@@ -262,15 +266,17 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public void joinGame(String username, GameData game) throws DataAccessException {
+        String chosenSide;
+        if (game.whiteUsername() != null) {
+            chosenSide = "whiteUsername";
+        } else {
+            chosenSide = "blackUsername";
+        }
+        String query = String.format("UPDATE games SET %s = ? WHERE gameID = ?", chosenSide);
         try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("UPDATE games SET ? = ? WHERE gameName = ?")) {
-                if (game.whiteUsername() != null) {
-                    statement.setString(1, "whiteUsername");
-                } else {
-                    statement.setString(1, "blackUsername");
-                }
-                statement.setString(2, username);
-                statement.setString(3, game.gameName());
+            try (var statement = conn.prepareStatement(query)) {
+                statement.setString(1, username);
+                statement.setDouble(2, game.gameID());
                 var result = statement.executeUpdate();
             }
         }

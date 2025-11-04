@@ -107,8 +107,13 @@ public class Server {
             ctx.result(serializer.toJson(logoutResponse));
         }
         catch (Exception ex) {
-            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(401).result(message);
+            if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -121,8 +126,13 @@ public class Server {
             ctx.result(serializer.toJson(listResponse));
         }
         catch (Exception ex) {
-            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(401).result(message);
+            if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -178,13 +188,14 @@ public class Server {
 
     private void clear(Context ctx) {
         var service = new UserService(dataAccess);
-        service.clear();
         try {
+            service.clear();
             dataAccess.init();
+            ctx.result("{}");
         } catch (Exception ex){
-            int filler = 1;
+            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+            ctx.status(500).result(message);
         }
-        ctx.result("{}");
     }
 
     public void stop() {

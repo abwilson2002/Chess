@@ -2,6 +2,7 @@ package service;
 import chess.ChessGame;
 import model.*;
 import dataaccess.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.Objects;
 
@@ -31,7 +32,7 @@ public class UserService {
             throw new DataAccessException("Error: bad request");
         }
         var checkExisting = dataAccess.getUser(user.username());
-        if (checkExisting == null || !Objects.equals(checkExisting.password(), user.password())) {
+        if (checkExisting == null || !BCrypt.checkpw(user.password(), checkExisting.password())) {
             throw new DataAccessException("Error: unauthorized");
         }
         var authentication = dataAccess.addAuth(user.username());
@@ -82,9 +83,9 @@ public class UserService {
             throw new DataAccessException("Error: bad request");
         }
         if (game.color().equals("WHITE")) {
-            whiteUsername = "me";
+            whiteUsername = thisUser.username();
         } else if (game.color().equals("BLACK")) {
-            blackUsername = "me";
+            blackUsername = thisUser.username();
         } else {
             throw new DataAccessException("Error: bad request");
         }
@@ -105,7 +106,12 @@ public class UserService {
         return new JoinResponse();
     }
 
-    public void clear() {
-        dataAccess.clear();
+    public void clear() throws DataAccessException {
+        try {
+            dataAccess.clear();
+        }
+        catch (Exception ex) {
+            throw new DataAccessException("Error: Failed to clear tables");
+        }
     }
 }

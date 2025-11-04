@@ -106,7 +106,7 @@ public class ChessPiece implements Cloneable {
                     if (withinBoard(rowCheck, colCheck)) {
                         if (isSpaceFilled(board, temp)) {
                             if (isSpaceEnemy(board, temp)) {
-                                if (board.allPieces.get(temp).getPieceType() == PieceType.KNIGHT) {
+                                if (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.KNIGHT) {
                                     return false;
                                 }
                             }
@@ -126,7 +126,7 @@ public class ChessPiece implements Cloneable {
         for (int i = -1; i < 2; i += 2) {
             ChessPosition pawnCheck = new ChessPosition(row + pawnDirectionCheck, col + i);
             if (isSpaceFilled(board, pawnCheck)) {
-                if (isSpaceEnemy(board, pawnCheck) && board.allPieces.get(pawnCheck).getPieceType() == PieceType.PAWN) {
+                if (isSpaceEnemy(board, pawnCheck) && board.getAllPieces().get(board.positionToString(pawnCheck)).getPieceType() == PieceType.PAWN) {
                     return false;
                 }
             }
@@ -141,7 +141,7 @@ public class ChessPiece implements Cloneable {
                 if (withinBoard(row + i, col + j)) {
                     if (isSpaceFilled(board, temp)) {
                         if (isSpaceEnemy(board, temp)) {
-                            if (board.allPieces.get(temp).getPieceType() == PieceType.KING) {
+                            if (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.KING) {
                                 return false;
                             }
                         }
@@ -361,7 +361,7 @@ public class ChessPiece implements Cloneable {
             if (withinBoard(row, col)) {
                 if (isSpaceFilled(board, temp)) {
                     if (isSpaceEnemy(board, temp)) {
-                        if (board.allPieces.get(temp).getPieceType() == checking || board.allPieces.get(temp).getPieceType() == PieceType.QUEEN) {
+                        if (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == checking || board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.QUEEN) {
                             return false;
                         }
                     }
@@ -378,11 +378,11 @@ public class ChessPiece implements Cloneable {
     }
 
     Boolean isSpaceFilled(ChessBoard board, ChessPosition target) {
-        return board.allPieces.get(target) != null;
+        return board.getAllPieces().get(board.positionToString(target)) != null;
     }
 
     Boolean isSpaceEnemy(ChessBoard board, ChessPosition target) {
-        return (board.allPieces.get(target).faction != this.faction);
+        return (board.getAllPieces().get(board.positionToString(target)).faction != this.faction);
     }
 
     Boolean withinBoard(int row, int col) {
