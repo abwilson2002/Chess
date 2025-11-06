@@ -39,7 +39,8 @@ public class ChessPiece implements Cloneable {
                 '}';
     }
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public ChessPiece(ChessGame.TeamColor pieceColor,
+                      ChessPiece.PieceType type) {
         faction = pieceColor;
         this.type = type;
     }
@@ -86,7 +87,8 @@ public class ChessPiece implements Cloneable {
      *
      * @return Collection of valid moves
      */
-    public boolean kingCanMove(ChessBoard board, ChessPosition myPosition) {
+    public boolean kingCanMove(ChessBoard board,
+                               ChessPosition myPosition) {
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
 
@@ -103,15 +105,11 @@ public class ChessPiece implements Cloneable {
                 int colCheck = col + (holder2 * j);
                 ChessPosition temp = new ChessPosition(rowCheck, colCheck);
                 for (int k = 0; k < 2; k++) {
-                    if (withinBoard(rowCheck, colCheck)) {
-                        if (isSpaceFilled(board, temp)) {
-                            if (isSpaceEnemy(board, temp)) {
-                                if (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.KNIGHT) {
+                    if (withinBoard(rowCheck, colCheck)
+                        && isSpaceFilled(board, temp)
+                            && isSpaceEnemy(board, temp)
+                                && (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.KNIGHT)) {
                                     return false;
-                                }
-                            }
-                        }
-
                     }
                     rowCheck = row + (holder2 * i);
                     colCheck = col + (holder1 * j);
@@ -138,21 +136,19 @@ public class ChessPiece implements Cloneable {
                     j++;
                 }
                 ChessPosition temp = new ChessPosition(row + i, col + j);
-                if (withinBoard(row + i, col + j)) {
-                    if (isSpaceFilled(board, temp)) {
-                        if (isSpaceEnemy(board, temp)) {
-                            if (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.KING) {
-                                return false;
-                            }
-                        }
-                    }
+                if (withinBoard(row + i, col + j)
+                    && (isSpaceFilled(board, temp)
+                    && (isSpaceEnemy(board, temp)
+                    && (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.KING)))) {
+                        return false;
                 }
             }
         }
         return true;
     }
 
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+    public Collection<ChessMove> pieceMoves(ChessBoard board,
+                                            ChessPosition myPosition) {
         Set<ChessMove> possibleMoves = new HashSet<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
@@ -170,33 +166,38 @@ public class ChessPiece implements Cloneable {
             for (int i = -1; i < 2; i++) {
                 for (int j = -1; j < 2; j++) {
                     ChessPosition temp = new ChessPosition(row + i, col + j);
-                    if (withinBoard(row + i, col + j)) {
-                        if (!isSpaceFilled(board, temp)) {
-                            possibleMoves.add(new ChessMove(myPosition, temp, null));
-                        } else if (isSpaceEnemy(board, temp)) {
-                            possibleMoves.add(new ChessMove(myPosition, temp, null));
-                        }
+                    if (withinBoard(row + i, col + j)
+                            && !isSpaceFilled(board, temp)) {
+                                possibleMoves.add(new ChessMove(myPosition, temp, null));
+                    } else if (withinBoard(row + i, col + j)
+                            && isSpaceEnemy(board, temp)) {
+                                possibleMoves.add(new ChessMove(myPosition, temp, null));
                     }
                 }
             }
+            //This if statement adds castling move. It needs to check that each space in between is safe to move to.
             if (!moved & kingCanMove(board, myPosition)) {
-                if (board.getPiece(new ChessPosition(row, 1)) != null) {
-                    if (board.getPiece(new ChessPosition(row, 1)).getPieceType() == PieceType.ROOK & board.getPiece(new ChessPosition(row, 1)).getTeamColor() == this.faction) {
-                        if (!board.getPiece(new ChessPosition(row, 1)).moved) {
-                            if (board.getPiece(new ChessPosition(row, 2)) == null & kingCanMove(board, new ChessPosition(row, 2)) & board.getPiece(new ChessPosition(row, 3)) == null & kingCanMove(board, new ChessPosition(row, 3)) & board.getPiece(new ChessPosition(row, 4)) == null & kingCanMove(board, new ChessPosition(row, 4))) {
-                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
-                            }
-                        }
-                    }
+                if (board.getPiece(new ChessPosition(row, 1)) != null
+                    && (board.getPiece(new ChessPosition(row, 1)).getPieceType() == PieceType.ROOK
+                        & board.getPiece(new ChessPosition(row, 1)).getTeamColor() == this.faction)
+                        && (!board.getPiece(new ChessPosition(row, 1)).moved)
+                        && (board.getPiece(new ChessPosition(row, 2)) == null
+                            & kingCanMove(board, new ChessPosition(row, 2))
+                            & board.getPiece(new ChessPosition(row, 3)) == null
+                            & kingCanMove(board, new ChessPosition(row, 3))
+                            & board.getPiece(new ChessPosition(row, 4)) == null
+                            & kingCanMove(board, new ChessPosition(row, 4)))) {
+                            possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 3), null));
                 }
-                if (board.getPiece(new ChessPosition(row, 8)) != null) {
-                    if (board.getPiece(new ChessPosition(row, 8)).getPieceType() == PieceType.ROOK & board.getPiece(new ChessPosition(row, 8)).getTeamColor() == this.faction) {
-                        if (!board.getPiece(new ChessPosition(row, 8)).moved) {
-                            if (board.getPiece(new ChessPosition(row, 6)) == null & kingCanMove(board, new ChessPosition(row, 6)) & board.getPiece(new ChessPosition(row, 7)) == null & kingCanMove(board, new ChessPosition(row, 7))) {
-                                possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 7), null));
-                            }
-                        }
-                    }
+                if (board.getPiece(new ChessPosition(row, 8)) != null
+                    && (board.getPiece(new ChessPosition(row, 8)).getPieceType() == PieceType.ROOK
+                        & board.getPiece(new ChessPosition(row, 8)).getTeamColor() == this.faction)
+                        && (!board.getPiece(new ChessPosition(row, 8)).moved)
+                            && (board.getPiece(new ChessPosition(row, 6)) == null
+                                & kingCanMove(board, new ChessPosition(row, 6))
+                                & board.getPiece(new ChessPosition(row, 7)) == null
+                                & kingCanMove(board, new ChessPosition(row, 7)))) {
+                                    possibleMoves.add(new ChessMove(myPosition, new ChessPosition(row, 7), null));
                 }
             }
         } else if (type == PieceType.KNIGHT) {
@@ -208,11 +209,12 @@ public class ChessPiece implements Cloneable {
                     int colCheck = col + (holder2 * j);
                     ChessPosition temp = new ChessPosition(rowCheck, colCheck);
                     for (int k = 0; k < 2; k++) {
-                        if (withinBoard(rowCheck, colCheck)) {
-                            if (!isSpaceFilled(board, temp)) {
-                                possibleMoves.add(new ChessMove(myPosition, temp, null));
-                            } else if (isSpaceEnemy(board, temp)) {
-                                possibleMoves.add(new ChessMove(myPosition, temp, null));
+                            if (withinBoard(rowCheck, colCheck)
+                                    && (!isSpaceFilled(board, temp))) {
+                                        possibleMoves.add(new ChessMove(myPosition, temp, null));
+                            } else if (withinBoard(rowCheck, colCheck)
+                                    && isSpaceEnemy(board, temp)) {
+                                        possibleMoves.add(new ChessMove(myPosition, temp, null));
                             }
                         }
                         rowCheck = row + (holder2 * i);
@@ -221,12 +223,12 @@ public class ChessPiece implements Cloneable {
                     }
                 }
             }
-        }
-
         return possibleMoves;
     }
 
-    Set<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves) {
+    Set<ChessMove> pawnMoves(ChessBoard board,
+                             ChessPosition myPosition,
+                             Set<ChessMove> possibleMoves) {
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
         int pawnDirection = 1;
@@ -283,7 +285,11 @@ public class ChessPiece implements Cloneable {
         return possibleMoves;
     }
 
-    Set<ChessMove> linearChecks(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves, int row, int col) {
+    Set<ChessMove> linearChecks(ChessBoard board,
+                                ChessPosition myPosition,
+                                Set<ChessMove> possibleMoves,
+                                int row,
+                                int col) {
         for (int i = -1; i < 2; i += 2) {
             possibleMoves = movesInADirection(board, myPosition, possibleMoves, row, col, i, 0);
         }
@@ -293,7 +299,9 @@ public class ChessPiece implements Cloneable {
         return possibleMoves;
     }
 
-    boolean linearKingChecks(ChessBoard board, int row, int col) {
+    boolean linearKingChecks(ChessBoard board,
+                             int row,
+                             int col) {
         for (int i = -1; i < 2; i += 2) {
             if(!kingMovesInADirection(board, row, col, i, 0, PieceType.ROOK)) {
                 return false;
@@ -307,7 +315,9 @@ public class ChessPiece implements Cloneable {
         return true;
     }
 
-    boolean diagonalKingChecks(ChessBoard board, int row, int col) {
+    boolean diagonalKingChecks(ChessBoard board,
+                               int row,
+                               int col) {
         for (int i = -1; i < 2; i += 2) {
             for (int j = -1; j < 2; j += 2) {
                 if (!kingMovesInADirection(board, row, col, i, j, PieceType.BISHOP)) {
@@ -318,7 +328,11 @@ public class ChessPiece implements Cloneable {
         return true;
     }
 
-    Set<ChessMove> diagonalChecks(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves, int row, int col) {
+    Set<ChessMove> diagonalChecks(ChessBoard board,
+                                  ChessPosition myPosition,
+                                  Set<ChessMove> possibleMoves,
+                                  int row,
+                                  int col) {
         for (int i = -1; i < 2; i += 2) {
             for (int j = -1; j < 2; j += 2) {
                 possibleMoves = movesInADirection(board, myPosition, possibleMoves, row, col, i, j);
@@ -327,7 +341,13 @@ public class ChessPiece implements Cloneable {
         return possibleMoves;
     }
 
-    Set<ChessMove> movesInADirection(ChessBoard board, ChessPosition myPosition, Set<ChessMove> possibleMoves, int rowStart, int colStart, int rowChange, int colChange) {
+    Set<ChessMove> movesInADirection(ChessBoard board,
+                                     ChessPosition myPosition,
+                                     Set<ChessMove> possibleMoves,
+                                     int rowStart,
+                                     int colStart,
+                                     int rowChange,
+                                     int colChange) {
         int row = rowStart + rowChange;
         int col = colStart + colChange;
         ChessPosition temp = new ChessPosition(row, col);
@@ -352,7 +372,12 @@ public class ChessPiece implements Cloneable {
         return possibleMoves;
     }
 
-    boolean kingMovesInADirection(ChessBoard board, int rowStart, int colStart, int rowChange, int colChange, PieceType checking) {
+    boolean kingMovesInADirection(ChessBoard board,
+                                  int rowStart,
+                                  int colStart,
+                                  int rowChange,
+                                  int colChange,
+                                  PieceType checking) {
         int row = rowStart + rowChange;
         int col = colStart + colChange;
         ChessPosition temp = new ChessPosition(row, col);
@@ -360,10 +385,10 @@ public class ChessPiece implements Cloneable {
         while (!ranIntoSomething) {
             if (withinBoard(row, col)) {
                 if (isSpaceFilled(board, temp)) {
-                    if (isSpaceEnemy(board, temp)) {
-                        if (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == checking || board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.QUEEN) {
+                    if (isSpaceEnemy(board, temp)
+                        && (board.getAllPieces().get(board.positionToString(temp)).getPieceType() == checking
+                            || board.getAllPieces().get(board.positionToString(temp)).getPieceType() == PieceType.QUEEN)) {
                             return false;
-                        }
                     }
                     ranIntoSomething = true;
                 }
@@ -377,15 +402,18 @@ public class ChessPiece implements Cloneable {
         return true;
     }
 
-    Boolean isSpaceFilled(ChessBoard board, ChessPosition target) {
+    Boolean isSpaceFilled(ChessBoard board,
+                          ChessPosition target) {
         return board.getAllPieces().get(board.positionToString(target)) != null;
     }
 
-    Boolean isSpaceEnemy(ChessBoard board, ChessPosition target) {
+    Boolean isSpaceEnemy(ChessBoard board,
+                         ChessPosition target) {
         return (board.getAllPieces().get(board.positionToString(target)).faction != this.faction);
     }
 
-    Boolean withinBoard(int row, int col) {
+    Boolean withinBoard(int row,
+                        int col) {
         if (row < 9 & row > 0) {
             if (col < 9 & col > 0) {
                 return true;

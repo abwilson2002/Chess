@@ -29,7 +29,11 @@ public class ChessGame {
             return false;
         }
         ChessGame chessGame = (ChessGame) o;
-        return whiteInCheck == chessGame.whiteInCheck && blackInCheck == chessGame.blackInCheck && gameOver == chessGame.gameOver && Objects.equals(isWhiteTurn, chessGame.isWhiteTurn) && Objects.equals(getBoard(), chessGame.getBoard());
+        return whiteInCheck == chessGame.whiteInCheck
+                && blackInCheck == chessGame.blackInCheck
+                && gameOver == chessGame.gameOver
+                && Objects.equals(isWhiteTurn, chessGame.isWhiteTurn)
+                && Objects.equals(getBoard(), chessGame.getBoard());
     }
 
     @Override
@@ -179,14 +183,17 @@ public class ChessGame {
                         rookSpot = 1;
                     }
                     ChessPiece movingRook = board.getAllPieces().get(board.positionToString(new ChessPosition(movingRow, rookSpot)));
-                    board.getAllPieces().put(board.positionToString(new ChessPosition(movingRow, (end.getColumn() + (moveDistance / 2)))), movingRook);
+                    board.getAllPieces().put(board.positionToString(new ChessPosition(movingRow, (end.getColumn() + (moveDistance / 2)))),
+                            movingRook);
                     board.getAllPieces().remove(board.positionToString(new ChessPosition(movingRow, rookSpot)));
                     movingRook.moved = true;
                 }
             }
         } else {
             if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
-                if ((movingPiece.faction == TeamColor.WHITE & board.blackPawnDoubleMove) || (movingPiece.faction == TeamColor.BLACK & board.whitePawnDoubleMove)) {
+                if ((movingPiece.faction == TeamColor.WHITE
+                        & board.blackPawnDoubleMove) || (movingPiece.faction == TeamColor.BLACK
+                        & board.whitePawnDoubleMove)) {
                     if (end.getColumn() == board.enPassantPosition.getColumn() & (end.getRow() == 3 || end.getRow() == 6)) {
                         board.getAllPieces().remove(board.positionToString(board.enPassantPosition));
                     }

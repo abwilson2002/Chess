@@ -32,7 +32,10 @@ public class ChessBoard implements Cloneable{
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return whitePawnDoubleMove == that.whitePawnDoubleMove && blackPawnDoubleMove == that.blackPawnDoubleMove && Objects.equals(allPieces, that.allPieces) && Objects.equals(enPassantPosition, that.enPassantPosition);
+        return whitePawnDoubleMove == that.whitePawnDoubleMove
+                && blackPawnDoubleMove == that.blackPawnDoubleMove
+                && Objects.equals(allPieces, that.allPieces) 
+                && Objects.equals(enPassantPosition, that.enPassantPosition);
     }
 
     @Override
