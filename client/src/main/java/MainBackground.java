@@ -25,6 +25,7 @@ public class MainBackground {
     private String userAuth = "";
     private HttpClient httpClient = HttpClient.newHttpClient();
     private String serverUrl;
+    boolean loggedIn = false;
 
     public MainBackground(String serverName) throws Exception {
 
@@ -34,14 +35,11 @@ public class MainBackground {
 
     public void running() throws URISyntaxException, IOException, InterruptedException {
         System.out.println("♕ 240 Chess Client\n");
-        System.out.println("What is your command?");
-
         Gson gson = new Gson();
-
-
 
         boolean finished = false;
         while (!finished) {
+            System.out.println("What is your command?");
             var scanner = new Scanner(System.in);
             var result = scanner.nextLine();
 
@@ -107,13 +105,22 @@ public class MainBackground {
 
                 }
                 case ("help") -> {
-
+                    if (!loggedIn) {
+                        System.out.println("register <username> <password> <email> : this registers a new user with the given credentials");
+                        System.out.println("login <username> <password> : this logs you in as a preexisting user");
+                        System.out.println("exit : this ends the chess client");
+                    } else {
+                        System.out.println("logout : this logs you out");
+                        System.out.println("list : this will list all of the games currently saved");
+                        System.out.println("create <gameName> : this will create a new game with the given name");
+                        System.out.println("join <gameID> <color> : this will join you as a player or spectator depending on the your input (enter BLUE to be a spectator");
+                    }
                 }
                 case ("clear") -> {
                     System.out.println("You have selected clear, enter your manager password to clear");
 
                     result = scanner.nextLine();
-                    if (result != "youmustacceptthatbydoingthisyouarejepreodizingthesaveinformationofall2peoplethatwilleventuallyusethis...thinkcarefu11ybeforeyoueneter") {
+                    if (!Objects.equals(result, "youmustacceptthatbydoingthisyouarejepreodizingthesaveinformationofall2peoplethatwilleventuallyusethis...thinkcarefu11ybeforeyoueneter")) {
                         System.out.println("password incorrect, goodbye");
                         finished = true;
                     } else {
@@ -127,6 +134,8 @@ public class MainBackground {
                                 .timeout(java.time.Duration.ofMillis(5000))
                                 .DELETE()
                                 .build();
+
+                        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                     }
 
                 }
