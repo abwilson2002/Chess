@@ -1,6 +1,7 @@
 
 import chess.*;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.*;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -130,9 +132,17 @@ public class MainBackground {
 
                             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+                            Type listType = new TypeToken<List<GameData>>(){}.getType();
+
                             String responseBody = response.body();
 
-                            List output = gson.fromJson(responseBody, List.class);
+                            List<GameData> output = gson.fromJson(responseBody, listType);
+
+                            for (GameData game : output) {
+                                System.out.println("GameID: " + game.gameID() +
+                                        " whiteUser: " + game.whiteUsername() +
+                                        " blackUser: " + game.blackUsername());
+                            }
                         }
                         case ("create") -> {
 
@@ -172,7 +182,29 @@ public class MainBackground {
                             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                             if (response.statusCode() == 200) {
-
+                                if (!playerColor.equals("BLACK")) {
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                } else {
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                    System.out.println();
+                                }
                             } else {
 
                             }
