@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -23,8 +22,8 @@ public class MainBackground {
     private String user = null;
     boolean signedIn = false;
     private String userAuth = "";
-    private HttpClient httpClient = HttpClient.newHttpClient();
-    private String serverUrl;
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final String serverUrl;
     boolean loggedIn = false;
 
     public MainBackground(String serverName) throws Exception {
@@ -41,7 +40,7 @@ public class MainBackground {
         while (!finished) {
             System.out.println("What is your command?");
             var scanner = new Scanner(System.in);
-            var result = scanner.nextLine();
+            var result = scanner.next();
 
             /*HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(serverUrl))
@@ -55,23 +54,30 @@ public class MainBackground {
                 case ("exit") -> {
                     finished = true;
                 }
-                case ("register") -> {
-                    System.out.println("Username, password, email");
+                case ("register"), ("login") -> {
+                    String pathedUrl;
+                    String requestInput;
 
-                    result = scanner.nextLine();
-                    String username = result;
-                    result = scanner.nextLine();
-                    String pass = result;
-                    result = scanner.nextLine();
-                    String email = result;
+                    if (result.equals("register")) {
+                        pathedUrl = serverUrl + "/user";
+                        String username = scanner.next();
+                        String pass = scanner.next();
+                        String email = scanner.next();
 
-                    var input = Map.of("username", username, "password", pass, "email", email);
-                    var requestInput = gson.toJson(input);
+                        var input = Map.of("username", username, "password", pass, "email", email);
+                        requestInput = gson.toJson(input);
+                    } else {
+                        pathedUrl = serverUrl + "/session";
+                        String username = scanner.next();
+                        String pass = scanner.next();
 
-                    String registerUrl = serverUrl + "/user";
+                        var input = Map.of("username", username, "password", pass);
+                        requestInput = gson.toJson(input);
+                    }
+
 
                     var request = HttpRequest.newBuilder()
-                            .uri(new URI(registerUrl))
+                            .uri(new URI(pathedUrl))
                             .header("Authorization", userAuth)
                             .timeout(java.time.Duration.ofMillis(5000))
                             .POST(HttpRequest.BodyPublishers.ofString(requestInput))
@@ -86,23 +92,57 @@ public class MainBackground {
                     userAuth = output.authToken();
                     user = output.username();
 
-
-                    System.out.println("Registered as: " + user);
-                }
-                case ("login") -> {
-
+                    System.out.println("Logged in as: " + user);
+                    loggedIn = true;
                 }
                 case ("logout") -> {
+                    String registerUrl = serverUrl + "/session";
 
+                    var request = HttpRequest.newBuilder()
+                            .uri(new URI(registerUrl))
+                            .header("Authorization", userAuth)
+                            .timeout(java.time.Duration.ofMillis(5000))
+                            .DELETE()
+                            .build();
+
+                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    System.out.println("Logged out");
+
+                    loggedIn = false;
                 }
-                case ("list") -> {
-
-                }
-                case ("create") -> {
-
-                }
-                case ("join") -> {
-
+                case ("list"), ("create"), ("join") -> {
+                    if (!loggedIn) {
+                        System.out.println("Please log in or register before continuing");
+                        break;
+                    }
+                    String registerUrl = serverUrl + "/game";
+                    switch(result) {
+                        case ("list") -> {
+                            var request = HttpRequest.newBuilder()
+                                    .uri(new URI(registerUrl))
+                                    .header("Authorization", userAuth)
+                                    .timeout(java.time.Duration.ofMillis(5000))
+                                    .GET()
+                                    .build();
+                        }
+                        case ("create") -> {
+                            var request = HttpRequest.newBuilder()
+                                    .uri(new URI(registerUrl))
+                                    .header("Authorization", userAuth)
+                                    .timeout(java.time.Duration.ofMillis(5000))
+                                    .POST()
+                                    .build();
+                        }
+                        case ("join") -> {
+                            var request = HttpRequest.newBuilder()
+                                    .uri(new URI(registerUrl))
+                                    .header("Authorization", userAuth)
+                                    .timeout(java.time.Duration.ofMillis(5000))
+                                    .PUT()
+                                    .build();
+                        }
+                    }
                 }
                 case ("help") -> {
                     if (!loggedIn) {
@@ -141,8 +181,5 @@ public class MainBackground {
                 }
             }
         }
-
-
     }
-
 }
