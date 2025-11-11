@@ -89,7 +89,7 @@ public class MainBackground {
                     userAuth = output.authToken();
                     user = output.username();
 
-                    System.out.println("Logged in as: " + user);
+                    System.out.println("Logged in as: " + user + "\n");
                     loggedIn = true;
                 }
                 case ("logout") -> {
@@ -110,7 +110,7 @@ public class MainBackground {
                 }
                 case ("list"), ("create"), ("join") -> {
                     if (!loggedIn) {
-                        System.out.println("Please log in or register before continuing");
+                        System.out.println("Please log in or register before continuing\n");
                         break;
                     }
                     String registerUrl = serverUrl + "/game";
@@ -226,9 +226,9 @@ public class MainBackground {
                                         b + WHITE_KNIGHT +
                                         w + WHITE_ROOK;
                                 if (!playerColor.equals("BLACK")) {
-                                    chessBoardCreator(bG, blackWhiteToBlackRow, blackBlackToWhiteRow, emptyBlackToWhiteRow, emptyWhiteToBlackRow, whiteWhiteToBlackRow, whiteBlackToWhiteRow);
+                                    chessBoardCreator(bG, blackWhiteToBlackRow, blackBlackToWhiteRow, emptyBlackToWhiteRow, emptyWhiteToBlackRow, whiteWhiteToBlackRow, whiteBlackToWhiteRow, false);
                                 } else {
-                                    chessBoardCreator(bG, whiteBlackToWhiteRow, whiteWhiteToBlackRow, emptyWhiteToBlackRow, emptyBlackToWhiteRow, blackBlackToWhiteRow, blackWhiteToBlackRow);
+                                    chessBoardCreator(bG, whiteBlackToWhiteRow, whiteWhiteToBlackRow, emptyWhiteToBlackRow, emptyBlackToWhiteRow, blackBlackToWhiteRow, blackWhiteToBlackRow, true);
                                 }
                             } else {
                                 errorHandler(response);
@@ -240,12 +240,12 @@ public class MainBackground {
                     if (!loggedIn) {
                         System.out.println("register <username> <password> <email> : this registers a new user with the given credentials");
                         System.out.println("login <username> <password> : this logs you in as a preexisting user");
-                        System.out.println("exit : this ends the chess client");
+                        System.out.println("exit : this ends the chess client\n");
                     } else {
                         System.out.println("logout : this logs you out");
                         System.out.println("list : this will list all of the games currently saved");
                         System.out.println("create <gameName> : this will create a new game with the given name");
-                        System.out.println("join <gameID> <color> : this will join you as a player or spectator depending on the your input (use all caps, spectators use BLUE)");
+                        System.out.println("join <gameID> <color> : this will join you as a player or spectator depending on the your input (use all caps, spectators use BLUE)\n");
                     }
                 }
                 case ("clear") -> {
@@ -275,17 +275,26 @@ public class MainBackground {
         }
     }
 
-    private void chessBoardCreator(String bG, String blackWhiteToBlackRow, String blackBlackToWhiteRow, String emptyBlackToWhiteRow, String emptyWhiteToBlackRow, String whiteWhiteToBlackRow, String whiteBlackToWhiteRow) {
-        System.out.printf(bG + "                               \n");
-        System.out.printf("    " + blackWhiteToBlackRow + bG + "\n");
-        System.out.printf("    " + blackBlackToWhiteRow + bG + "\n");
-        System.out.printf("    " + emptyWhiteToBlackRow + bG + "\n");
-        System.out.printf("    " + emptyBlackToWhiteRow + bG + "\n");
-        System.out.printf("    " + emptyWhiteToBlackRow + bG + "\n");
-        System.out.printf("    " + emptyBlackToWhiteRow + bG + "\n");
-        System.out.printf("    " + whiteWhiteToBlackRow + bG + "\n");
-        System.out.printf("    " + whiteBlackToWhiteRow + bG + "\n");
-        System.out.printf(bG + "                               \n");
+    private void chessBoardCreator(String bG, String blackWhiteToBlackRow, String blackBlackToWhiteRow, String emptyBlackToWhiteRow, String emptyWhiteToBlackRow, String whiteWhiteToBlackRow, String whiteBlackToWhiteRow, Boolean white) {
+        String border = "  a   b   c   d   e   f   g   h  ";
+        int startLabel = 1;
+        int labelIncrement = 1;
+        if (!white) {
+            border = new StringBuilder(border).reverse().toString();
+            startLabel = 8;
+            labelIncrement = -1;
+        }
+        var bC = SET_TEXT_COLOR_BLACK;
+        System.out.printf(bG + bC + "   " + border + "\n");
+        System.out.printf(bC + " %d " + blackWhiteToBlackRow + bG + bC + " 1 " + "\n", startLabel);
+        System.out.printf(bC + " %d " + blackBlackToWhiteRow + bG + bC + " 2 " + "\n", startLabel + labelIncrement);
+        System.out.printf(bC + " %d " + emptyWhiteToBlackRow + bG + " 3 " + "\n", startLabel + (2 * labelIncrement));
+        System.out.printf(bC + " %d " + emptyBlackToWhiteRow + bG + " 4 " + "\n", startLabel + (3 * labelIncrement));
+        System.out.printf(bC + " %d " + emptyWhiteToBlackRow + bG + " 5 " + "\n", startLabel + (4 * labelIncrement));
+        System.out.printf(bC + " %d " + emptyBlackToWhiteRow + bG + " 6 " + "\n", startLabel + (5 * labelIncrement));
+        System.out.printf(bC + " %d " + whiteWhiteToBlackRow + bG + bC + " 7 " + "\n", startLabel + (6 * labelIncrement));
+        System.out.printf(bC + " %d " + whiteBlackToWhiteRow + bG + bC + " 8 " + "\n", startLabel + (7 * labelIncrement));
+        System.out.printf(bG + bC + "   " + border + "\n");
     }
 
     public void errorHandler(HttpResponse<String> response) {
