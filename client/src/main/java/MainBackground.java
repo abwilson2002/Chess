@@ -2,6 +2,7 @@
 import chess.*;
 import com.google.gson.Gson;
 import model.AuthData;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
@@ -125,21 +127,44 @@ public class MainBackground {
                                     .timeout(java.time.Duration.ofMillis(5000))
                                     .GET()
                                     .build();
+
+                            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                            String responseBody = response.body();
+
+                            List output = gson.fromJson(responseBody, List.class);
                         }
                         case ("create") -> {
+
+                            String gameName = scanner.next();
+
+                            var input = Map.of("username", user, "gameName", gameName);
+                            String requestInput = gson.toJson(input);
+
                             var request = HttpRequest.newBuilder()
                                     .uri(new URI(registerUrl))
                                     .header("Authorization", userAuth)
                                     .timeout(java.time.Duration.ofMillis(5000))
-                                    .POST()
+                                    .POST(HttpRequest.BodyPublishers.ofString(requestInput))
                                     .build();
+
+                            System.out.println("Game created");
                         }
                         case ("join") -> {
+
+                            String gameName = scanner.next();
+
+                            String playerColor = scanner.next();
+
+                            var input = Map.of("username", user, "gameName", gameName, "playerColor", playerColor);
+                            String requestInput = gson.toJson(input);
+
+
                             var request = HttpRequest.newBuilder()
                                     .uri(new URI(registerUrl))
                                     .header("Authorization", userAuth)
                                     .timeout(java.time.Duration.ofMillis(5000))
-                                    .PUT()
+                                    .PUT(HttpRequest.BodyPublishers.ofString(requestInput))
                                     .build();
                         }
                     }
@@ -159,7 +184,7 @@ public class MainBackground {
                 case ("clear") -> {
                     System.out.println("You have selected clear, enter your manager password to clear");
 
-                    result = scanner.nextLine();
+                    result = scanner.next();
                     if (!Objects.equals(result, "youmustacceptthatbydoingthisyouarejepreodizingthesaveinformationofall2peoplethatwilleventuallyusethis...thinkcarefu11ybeforeyoueneter")) {
                         System.out.println("password incorrect, goodbye");
                         finished = true;
@@ -181,5 +206,8 @@ public class MainBackground {
                 }
             }
         }
+    }
+    public void gameMode() {
+        return;
     }
 }
