@@ -8,7 +8,7 @@ import model.ListResponse;
 import org.eclipse.jetty.websocket.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import static ui.EscapeSequences.*;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -43,17 +43,9 @@ public class MainBackground {
 
         boolean finished = false;
         while (!finished) {
-            System.out.println("What is your command?");
+            System.out.printf(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_RED + "What is your command?\n");
             var scanner = new Scanner(System.in);
             var result = scanner.next();
-
-            /*HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(serverUrl))
-                    .header("Authorization", userAuth)
-                    .timeout(java.time.Duration.ofMillis(5000))
-                    .GET()
-                    .build();
-            */
 
             switch(result) {
                 case ("exit") -> {
@@ -132,13 +124,9 @@ public class MainBackground {
                                     .build();
 
                             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-                            Type listType = new TypeToken<List<GameData>>(){}.getType();
-
                             String responseBody = response.body();
 
                             ListResponse rawOutput = gson.fromJson(responseBody, ListResponse.class);
-
                             List<GameData> output = rawOutput.games();
 
                             for (GameData game : output) {
@@ -151,7 +139,6 @@ public class MainBackground {
                             }
                         }
                         case ("create") -> {
-
                             String gameName = scanner.next();
 
                             var input = Map.of("username", user, "gameName", gameName);
@@ -165,18 +152,14 @@ public class MainBackground {
                                     .build();
 
                             httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
                             System.out.println("Game created");
                         }
                         case ("join") -> {
-
                             String gameID = scanner.next();
-
                             String playerColor = scanner.next();
 
                             var input = Map.of("username", user, "gameID", gameID, "playerColor", playerColor);
                             String requestInput = gson.toJson(input);
-
 
                             var request = HttpRequest.newBuilder()
                                     .uri(new URI(registerUrl))
@@ -188,31 +171,67 @@ public class MainBackground {
                             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                             if (response.statusCode() == 200) {
+                                var bG = SET_BG_COLOR_LIGHT_GREY;
+                                var w = SET_BG_COLOR_WHITE;
+                                var b = SET_BG_COLOR_BLACK;
+                                var wP = SET_TEXT_COLOR_BLUE;
+                                var bP = SET_TEXT_COLOR_MAGENTA;
+                                String blackWhiteToBlackRow = w + bP + BLACK_ROOK +
+                                        b + bP + BLACK_KNIGHT +
+                                        w + bP + BLACK_BISHOP +
+                                        b + bP + BLACK_KING +
+                                        w + bP + BLACK_QUEEN +
+                                        b + bP + BLACK_BISHOP +
+                                        w + bP + BLACK_KNIGHT +
+                                        b + bP + BLACK_ROOK;
+                                String blackBlackToWhiteRow = b + bP + BLACK_PAWN +
+                                        w + bP + BLACK_PAWN +
+                                        b + bP + BLACK_PAWN +
+                                        w + bP + BLACK_PAWN +
+                                        b + bP + BLACK_PAWN +
+                                        w + bP + BLACK_PAWN +
+                                        b + bP + BLACK_PAWN +
+                                        w + bP + BLACK_PAWN;
+                                String emptyBlackToWhiteRow = b + EMPTY +
+                                        w + EMPTY +
+                                        b + EMPTY +
+                                        w + EMPTY +
+                                        b + EMPTY +
+                                        w + EMPTY +
+                                        b + EMPTY +
+                                        w + EMPTY;
+                                String emptyWhiteToBlackRow = w + EMPTY +
+                                        b + EMPTY +
+                                        w + EMPTY +
+                                        b + EMPTY +
+                                        w + EMPTY +
+                                        b + EMPTY +
+                                        w + EMPTY +
+                                        b + EMPTY;
+                                String whiteWhiteToBlackRow = wP +
+                                        w + WHITE_PAWN +
+                                        b + WHITE_PAWN +
+                                        w + WHITE_PAWN +
+                                        b + WHITE_PAWN +
+                                        w + WHITE_PAWN +
+                                        b + WHITE_PAWN +
+                                        w + WHITE_PAWN +
+                                        b + WHITE_PAWN;
+                                String whiteBlackToWhiteRow = b + wP + WHITE_ROOK +
+                                        w + WHITE_KNIGHT +
+                                        b + WHITE_BISHOP +
+                                        w + WHITE_KING +
+                                        b + WHITE_QUEEN +
+                                        w + WHITE_BISHOP +
+                                        b + WHITE_KNIGHT +
+                                        w + WHITE_ROOK;
                                 if (!playerColor.equals("BLACK")) {
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
+                                    chessBoardCreator(bG, blackWhiteToBlackRow, blackBlackToWhiteRow, emptyBlackToWhiteRow, emptyWhiteToBlackRow, whiteWhiteToBlackRow, whiteBlackToWhiteRow);
                                 } else {
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
-                                    System.out.println();
+                                    chessBoardCreator(bG, whiteBlackToWhiteRow, whiteWhiteToBlackRow, emptyWhiteToBlackRow, emptyBlackToWhiteRow, blackBlackToWhiteRow, blackWhiteToBlackRow);
                                 }
                             } else {
-
+                                errorHandler(response);
                             }
                         }
                     }
@@ -226,7 +245,7 @@ public class MainBackground {
                         System.out.println("logout : this logs you out");
                         System.out.println("list : this will list all of the games currently saved");
                         System.out.println("create <gameName> : this will create a new game with the given name");
-                        System.out.println("join <gameID> <color> : this will join you as a player or spectator depending on the your input (enter BLUE to be a spectator");
+                        System.out.println("join <gameID> <color> : this will join you as a player or spectator depending on the your input (use all caps, spectators use BLUE)");
                     }
                 }
                 case ("clear") -> {
@@ -256,8 +275,23 @@ public class MainBackground {
         }
     }
 
+    private void chessBoardCreator(String bG, String blackWhiteToBlackRow, String blackBlackToWhiteRow, String emptyBlackToWhiteRow, String emptyWhiteToBlackRow, String whiteWhiteToBlackRow, String whiteBlackToWhiteRow) {
+        System.out.printf(bG + "                               \n");
+        System.out.printf("    " + blackWhiteToBlackRow + bG + "\n");
+        System.out.printf("    " + blackBlackToWhiteRow + bG + "\n");
+        System.out.printf("    " + emptyWhiteToBlackRow + bG + "\n");
+        System.out.printf("    " + emptyBlackToWhiteRow + bG + "\n");
+        System.out.printf("    " + emptyWhiteToBlackRow + bG + "\n");
+        System.out.printf("    " + emptyBlackToWhiteRow + bG + "\n");
+        System.out.printf("    " + whiteWhiteToBlackRow + bG + "\n");
+        System.out.printf("    " + whiteBlackToWhiteRow + bG + "\n");
+        System.out.printf(bG + "                               \n");
+    }
+
     public void errorHandler(HttpResponse<String> response) {
         int errorCode = response.statusCode();
+        var message = new Gson().fromJson(response.body(), Exception.class);
+        System.out.println(message.getMessage());
     }
 
     public void gameMode() {
