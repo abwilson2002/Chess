@@ -142,10 +142,11 @@ public class MainBackground {
                             List<GameData> output = rawOutput.games();
 
                             for (GameData game : output) {
-                                System.out.printf("GameID: %d whiteUser: %s blackUser: %s\n",
+                                System.out.printf("GameID: %d whiteUser: %s blackUser: %s GameName: %s\n",
                                         ((int) Math.round(game.gameID())),
                                         game.whiteUsername(),
-                                        game.blackUsername()
+                                        game.blackUsername(),
+                                        game.gameName()
                                 );
                             }
                         }
