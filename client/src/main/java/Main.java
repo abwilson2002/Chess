@@ -3,6 +3,7 @@ import org.eclipse.jetty.websocket.api.*;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Scanner;
+import java.net.http.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -12,6 +13,7 @@ public class Main {
         }
 
         try {
+
             new MainBackground(serverUrl).running();
         }
         catch (Exception e) {
