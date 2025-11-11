@@ -148,15 +148,17 @@ public class MainBackground {
                                     .POST(HttpRequest.BodyPublishers.ofString(requestInput))
                                     .build();
 
+                            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
                             System.out.println("Game created");
                         }
                         case ("join") -> {
 
-                            String gameName = scanner.next();
+                            String gameID = scanner.next();
 
                             String playerColor = scanner.next();
 
-                            var input = Map.of("username", user, "gameName", gameName, "playerColor", playerColor);
+                            var input = Map.of("username", user, "gameID", gameID, "playerColor", playerColor);
                             String requestInput = gson.toJson(input);
 
 
@@ -166,6 +168,14 @@ public class MainBackground {
                                     .timeout(java.time.Duration.ofMillis(5000))
                                     .PUT(HttpRequest.BodyPublishers.ofString(requestInput))
                                     .build();
+
+                            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                            if (response.statusCode() == 200) {
+
+                            } else {
+
+                            }
                         }
                     }
                 }
@@ -207,6 +217,11 @@ public class MainBackground {
             }
         }
     }
+
+    public void errorHandler(HttpResponse<String> response) {
+        int errorCode = response.statusCode();
+    }
+
     public void gameMode() {
         return;
     }

@@ -77,6 +77,9 @@ public class UserService {
         }
         AuthData thisUser = dataAccess.getUser(user, 1);
         var existingGame = dataAccess.getGame(game.gameID());
+        if (existingGame == null) {
+            throw new DataAccessException("Error: bad request");
+        }
         String whiteUsername = null;
         String blackUsername = null;
         if (game.color() == null) {
@@ -89,10 +92,7 @@ public class UserService {
         } else {
             throw new DataAccessException("Error: bad request");
         }
-        if (existingGame == null) {
-            throw new DataAccessException("Error: bad request");
-        }
-        if (whiteUsername != null) {
+        if (game.color().equals("WHITE")) {
             if (existingGame.whiteUsername() != null) {
                 throw new DataAccessException("Error: Forbidden");
             }

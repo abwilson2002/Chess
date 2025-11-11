@@ -164,7 +164,7 @@ public class Server {
             var serializer = new Gson();
             var auth = ctx.header("authorization");
             var input = serializer.fromJson(ctx.body(), Map.class);
-            var joinRequest = new JoinData((Double) input.get("gameID"), (String) input.get("playerColor"), "gameName");
+            var joinRequest = new JoinData((Double.parseDouble((String) input.get("gameID"))), (String) input.get("playerColor"), "gameName");
             var service = new UserService(dataAccess);
             var joinResponse = service.join(joinRequest, auth);
             ctx.result(serializer.toJson(joinResponse));
