@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
+import model.ListResponse;
 import org.eclipse.jetty.websocket.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,12 +137,16 @@ public class MainBackground {
 
                             String responseBody = response.body();
 
-                            List<GameData> output = gson.fromJson(responseBody, listType);
+                            ListResponse rawOutput = gson.fromJson(responseBody, ListResponse.class);
+
+                            List<GameData> output = rawOutput.games();
 
                             for (GameData game : output) {
-                                System.out.println("GameID: " + game.gameID() +
-                                        " whiteUser: " + game.whiteUsername() +
-                                        " blackUser: " + game.blackUsername());
+                                System.out.printf("GameID: %d whiteUser: %s blackUser: %s\n",
+                                        ((int) Math.round(game.gameID())),
+                                        game.whiteUsername(),
+                                        game.blackUsername()
+                                );
                             }
                         }
                         case ("create") -> {
