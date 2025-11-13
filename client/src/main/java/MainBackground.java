@@ -193,13 +193,26 @@ public class MainBackground {
                                 var bG = SET_BG_COLOR_LIGHT_GREY;
                                 var w = SET_BG_COLOR_WHITE;
                                 var b = SET_BG_COLOR_BLACK;
+                                var fourthPieceW = WHITE_QUEEN;
+                                var fourthPieceB = BLACK_QUEEN;
+                                var fifthPieceW = WHITE_KING;
+                                var fifthPieceB = BLACK_KING;
+                                if (playerColor.equals("BLACK")) {
+                                    var temp = w;
+                                    w = b;
+                                    b = temp;
+                                    fourthPieceW = WHITE_KING;
+                                    fourthPieceB = BLACK_KING;
+                                    fifthPieceW = WHITE_QUEEN;
+                                    fifthPieceB = BLACK_QUEEN;
+                                }
                                 var wP = SET_TEXT_COLOR_ORANGE;
                                 var bP = SET_TEXT_COLOR_MAGENTA;
                                 String blackWhiteToBlackRow = w + bP + BLACK_ROOK +
                                         b + bP + BLACK_KNIGHT +
                                         w + bP + BLACK_BISHOP +
-                                        b + bP + BLACK_KING +
-                                        w + bP + BLACK_QUEEN +
+                                        b + bP + fourthPieceB +
+                                        w + bP + fifthPieceB +
                                         b + bP + BLACK_BISHOP +
                                         w + bP + BLACK_KNIGHT +
                                         b + bP + BLACK_ROOK;
@@ -239,8 +252,8 @@ public class MainBackground {
                                 String whiteBlackToWhiteRow = b + wP + WHITE_ROOK +
                                         w + WHITE_KNIGHT +
                                         b + WHITE_BISHOP +
-                                        w + WHITE_KING +
-                                        b + WHITE_QUEEN +
+                                        w + fourthPieceW +
+                                        b + fifthPieceW +
                                         w + WHITE_BISHOP +
                                         b + WHITE_KNIGHT +
                                         w + WHITE_ROOK;
@@ -252,7 +265,7 @@ public class MainBackground {
                                             emptyWhiteToBlackRow,
                                             whiteWhiteToBlackRow,
                                             whiteBlackToWhiteRow,
-                                            false);
+                                            true);
                                 } else {
                                     chessBoardCreator(bG,
                                             whiteBlackToWhiteRow,
@@ -261,7 +274,7 @@ public class MainBackground {
                                             emptyBlackToWhiteRow,
                                             blackBlackToWhiteRow,
                                             blackWhiteToBlackRow,
-                                            true);
+                                            false);
                                 }
                             } else {
                                 System.out.println("Someone has already taken that spot or you misentered your command" +
@@ -332,25 +345,25 @@ public class MainBackground {
                                    String whiteWhiteToBlackRow,
                                    String whiteBlackToWhiteRow,
                                    Boolean white) {
-        String border = EMPTY + "a" + EMPTY + "b" + EMPTY + "c" + EMPTY + "d" + EMPTY + "e" + EMPTY + "f" + EMPTY + "g" + EMPTY + "h" + EMPTY;
-        int startLabel = 1;
-        int labelIncrement = 1;
+        String border = " a   b  c   d   e   f  g   h    " + SET_BG_COLOR_BLACK;
+        int startLabel = 8;
+        int labelIncrement = -1;
         if (!white) {
-            border = new StringBuilder(border).reverse().toString();
-            startLabel = 8;
-            labelIncrement = -1;
+            border = " h   g  f   e   d   c  b   a    " + SET_BG_COLOR_BLACK;
+            startLabel = 1;
+            labelIncrement = 1;
         }
         var pC = SET_TEXT_COLOR_BLACK;
         var bC = SET_BG_COLOR_BLACK;
-        System.out.printf(bG + pC + "   " + border + bG + "\n");
-        System.out.printf(bG + pC + " %d " + blackWhiteToBlackRow + bG + pC + " 1 " + bC + " " + "\n", startLabel);
-        System.out.printf(bG + pC + " %d " + blackBlackToWhiteRow + bG + pC + " 2 " + bC + " " + "\n", startLabel + labelIncrement);
-        System.out.printf(bG + pC + " %d " + emptyWhiteToBlackRow + bG + " 3 " + bC + " " + "\n", startLabel + (2 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + emptyBlackToWhiteRow + bG + " 4 " + bC + " " + "\n", startLabel + (3 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + emptyWhiteToBlackRow + bG + " 5 " + bC + " " + "\n", startLabel + (4 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + emptyBlackToWhiteRow + bG + " 6 " + bC + " " + "\n", startLabel + (5 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + whiteWhiteToBlackRow + bG + pC + " 7 " + bC + " " + "\n", startLabel + (6 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + whiteBlackToWhiteRow + bG + pC + " 8 " + bC + " " + "\n", startLabel + (7 * labelIncrement));
+        System.out.printf(bG + pC + "   " + border + "\n");
+        System.out.printf(bG + pC + " %d " + blackWhiteToBlackRow + bG + pC + " %d " + bC + " " + "\n", startLabel, startLabel);
+        System.out.printf(bG + pC + " %d " + blackBlackToWhiteRow + bG + pC + " %d " + bC + " " + "\n", startLabel + labelIncrement, startLabel + labelIncrement);
+        System.out.printf(bG + pC + " %d " + emptyWhiteToBlackRow + bG + " %d " + bC + " " + "\n", startLabel + (2 * labelIncrement) , startLabel + (2 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + emptyBlackToWhiteRow + bG + " %d " + bC + " " + "\n", startLabel + (3 * labelIncrement) , startLabel + (3 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + emptyWhiteToBlackRow + bG + " %d " + bC + " " + "\n", startLabel + (4 * labelIncrement) , startLabel + (4 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + emptyBlackToWhiteRow + bG + " %d " + bC + " " + "\n", startLabel + (5 * labelIncrement) , startLabel + (5 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + whiteWhiteToBlackRow + bG + pC + " %d " + bC + " " + "\n", startLabel + (6 * labelIncrement) , startLabel + (6 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + whiteBlackToWhiteRow + bG + pC + " %d " + bC + " " + "\n", startLabel + (7 * labelIncrement) , startLabel + (7 * labelIncrement));
         System.out.printf(bG + pC + "   " + border + "\n");
     }
     /*
