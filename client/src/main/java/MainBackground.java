@@ -43,7 +43,8 @@ public class MainBackground {
 
         boolean finished = false;
         while (!finished) {
-            System.out.printf(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_RED + "What is your command?\n");
+            System.out.printf(SET_BG_COLOR_DARK_GREEN + SET_TEXT_COLOR_YELLOW + "What is your command?" +
+                    SET_BG_COLOR_BLACK + "\n");
             var scanner = new Scanner(System.in);
             var result = scanner.next();
 
@@ -82,6 +83,9 @@ public class MainBackground {
 
                         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+                        if (response.statusCode() != 200) {
+                            throw new Exception();
+                        }
                         String responseBody = response.body();
 
                         AuthData output = gson.fromJson(responseBody, AuthData.class);
@@ -89,15 +93,21 @@ public class MainBackground {
                         userAuth = output.authToken();
                         user = output.username();
 
-                        System.out.println("Logged in as: " + user + "\n");
+                        System.out.println("Logged in as: " + user +
+                                SET_BG_COLOR_BLACK + "\n");
                         loggedIn = true;
                     }
                     catch (Exception ex) {
-                        System.out.println("Not a valid login");
-                        continue;
+                        System.out.println("Not a valid input, use help to see command structure" +
+                                SET_BG_COLOR_BLACK + "\n");
                     }
                 }
                 case ("logout") -> {
+                    if (!loggedIn) {
+                        System.out.println("You are not logged in yet" +
+                                SET_BG_COLOR_BLACK + "\n");
+                        break;
+                    }
                     String registerUrl = serverUrl + "/session";
 
                     var request = HttpRequest.newBuilder()
@@ -109,13 +119,15 @@ public class MainBackground {
 
                     httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-                    System.out.println("Logged out");
+                    System.out.println("Logged out" +
+                            SET_BG_COLOR_BLACK + "\n");
 
                     loggedIn = false;
                 }
                 case ("list"), ("create"), ("join") -> {
                     if (!loggedIn) {
-                        System.out.println("Please log in or register before continuing\n");
+                        System.out.println("Please log in or register before continuing" +
+                                SET_BG_COLOR_BLACK + "\n");
                         break;
                     }
                     String registerUrl = serverUrl + "/game";
@@ -134,13 +146,18 @@ public class MainBackground {
                             ListResponse rawOutput = gson.fromJson(responseBody, ListResponse.class);
                             List<GameData> output = rawOutput.games();
 
+                            int i = 1;
                             for (GameData game : output) {
-                                System.out.printf("GameID: %d whiteUser: %s blackUser: %s GameName: %s\n",
-                                        ((int) Math.round(game.gameID())),
+                                var bG = SET_BG_COLOR_BLUE;
+                                var wC = SET_TEXT_COLOR_RED;
+                                System.out.printf(bG + wC + "Game: %d whiteUser: %s blackUser: %s GameName: %s" +
+                                                SET_BG_COLOR_BLACK + "\n",
+                                        i,
                                         game.whiteUsername(),
                                         game.blackUsername(),
                                         game.gameName()
                                 );
+                                i++;
                             }
                         }
                         case ("create") -> {
@@ -157,7 +174,8 @@ public class MainBackground {
                                     .build();
 
                             httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                            System.out.println("Game created");
+                            System.out.println("Game created" +
+                                    SET_BG_COLOR_BLACK + "\n");
                         }
                         case ("join") -> {
                             String gameID = scanner.next();
@@ -179,7 +197,7 @@ public class MainBackground {
                                 var bG = SET_BG_COLOR_LIGHT_GREY;
                                 var w = SET_BG_COLOR_WHITE;
                                 var b = SET_BG_COLOR_BLACK;
-                                var wP = SET_TEXT_COLOR_BLUE;
+                                var wP = SET_TEXT_COLOR_ORANGE;
                                 var bP = SET_TEXT_COLOR_MAGENTA;
                                 String blackWhiteToBlackRow = w + bP + BLACK_ROOK +
                                         b + bP + BLACK_KNIGHT +
@@ -231,37 +249,64 @@ public class MainBackground {
                                         b + WHITE_KNIGHT +
                                         w + WHITE_ROOK;
                                 if (!playerColor.equals("BLACK")) {
-                                    chessBoardCreator(bG, blackWhiteToBlackRow, blackBlackToWhiteRow, emptyBlackToWhiteRow, emptyWhiteToBlackRow, whiteWhiteToBlackRow, whiteBlackToWhiteRow, false);
+                                    chessBoardCreator(bG,
+                                            blackWhiteToBlackRow,
+                                            blackBlackToWhiteRow,
+                                            emptyBlackToWhiteRow,
+                                            emptyWhiteToBlackRow,
+                                            whiteWhiteToBlackRow,
+                                            whiteBlackToWhiteRow,
+                                            false);
                                 } else {
-                                    chessBoardCreator(bG, whiteBlackToWhiteRow, whiteWhiteToBlackRow, emptyWhiteToBlackRow, emptyBlackToWhiteRow, blackBlackToWhiteRow, blackWhiteToBlackRow, true);
+                                    chessBoardCreator(bG,
+                                            whiteBlackToWhiteRow,
+                                            whiteWhiteToBlackRow,
+                                            emptyWhiteToBlackRow,
+                                            emptyBlackToWhiteRow,
+                                            blackBlackToWhiteRow,
+                                            blackWhiteToBlackRow,
+                                            true);
                                 }
                             } else {
-                                errorHandler(response);
+                                System.out.println("Someone has already taken that spot or you misentered your command" +
+                                        SET_BG_COLOR_BLACK + "\n");
                             }
                         }
                     }
                 }
                 case ("help") -> {
                     if (!loggedIn) {
-                        System.out.println("register <username> <password> <email> : this registers a new user with the given credentials");
-                        System.out.println("login <username> <password> : this logs you in as a preexisting user");
-                        System.out.println("exit : this ends the chess client\n");
+                        System.out.println("register <username> <password> <email> : this registers a new user with the given credentials" +
+                                SET_BG_COLOR_BLACK);
+                        System.out.println("login <username> <password> : this logs you in as a preexisting user" +
+                                SET_BG_COLOR_BLACK);
+                        System.out.println("exit : this ends the chess client + \n" +
+                                SET_BG_COLOR_BLACK + "\n");
                     } else {
-                        System.out.println("logout : this logs you out");
-                        System.out.println("list : this will list all of the games currently saved");
-                        System.out.println("create <gameName> : this will create a new game with the given name");
-                        System.out.println("join <gameID> <color> : this will join you as a player or spectator depending on the your input (use all caps, spectators use BLUE)\n");
+                        System.out.println("logout : this logs you out" +
+                                SET_BG_COLOR_BLACK);
+                        System.out.println("list : this will list all of the games currently saved" +
+                                SET_BG_COLOR_BLACK);
+                        System.out.println("create <gameName> : this will create a new game with the given name" +
+                                SET_BG_COLOR_BLACK);
+                        System.out.println("join <gameID> <color> : this will join you as a player or spectator " +
+                                            "depending on the your input (use all caps, spectators use BLUE)" +
+                                SET_BG_COLOR_BLACK + "\n");
                     }
                 }
                 case ("clear") -> {
-                    System.out.println("You have selected clear, enter your manager password to clear");
+                    System.out.println("You have selected clear, enter your manager password to clear" +
+                            SET_BG_COLOR_BLACK);
 
                     result = scanner.next();
-                    if (!Objects.equals(result, "youmustacceptthatbydoingthisyouarejepreodizingthesaveinformationofall2peoplethatwilleventuallyusethis...thinkcarefu11ybeforeyoueneter")) {
-                        System.out.println("password incorrect, goodbye");
+                    if (!Objects.equals(result,
+                            "youmustacceptthatbydoingthisyouarejepreodizingthesaveinformationofall2peoplethatwilleventuallyusethis..." +
+                                    "thinkcarefu11ybeforeyoueneter")) {
+                        System.out.println("password incorrect, you will now be exited from the program" +
+                                SET_BG_COLOR_BLACK);
                         finished = true;
                     } else {
-                        System.out.println("password accepted, clearing now");
+                        System.out.println("password accepted, clearing now\n");
 
                         String registerUrl = serverUrl + "/db";
 
@@ -276,12 +321,22 @@ public class MainBackground {
                     }
 
                 }
+                default -> {
+                    System.out.println(result + " is not a valid command, use help to see all valid commands\n");
+                }
             }
         }
     }
 
-    private void chessBoardCreator(String bG, String blackWhiteToBlackRow, String blackBlackToWhiteRow, String emptyBlackToWhiteRow, String emptyWhiteToBlackRow, String whiteWhiteToBlackRow, String whiteBlackToWhiteRow, Boolean white) {
-        String border = "  a   b   c   d   e   f   g   h  ";
+    private void chessBoardCreator(String bG,
+                                   String blackWhiteToBlackRow,
+                                   String blackBlackToWhiteRow,
+                                   String emptyBlackToWhiteRow,
+                                   String emptyWhiteToBlackRow,
+                                   String whiteWhiteToBlackRow,
+                                   String whiteBlackToWhiteRow,
+                                   Boolean white) {
+        String border = EMPTY + "a" + EMPTY + "b" + EMPTY + "c" + EMPTY + "d" + EMPTY + "e" + EMPTY + "f" + EMPTY + "g" + EMPTY + "h" + EMPTY;
         int startLabel = 1;
         int labelIncrement = 1;
         if (!white) {
@@ -289,17 +344,18 @@ public class MainBackground {
             startLabel = 8;
             labelIncrement = -1;
         }
-        var bC = SET_TEXT_COLOR_BLACK;
-        System.out.printf(bG + bC + "   " + border + bG + "\n");
-        System.out.printf(bC + " %d " + blackWhiteToBlackRow + bG + bC + " 1 " + bG + " " + "\n", startLabel);
-        System.out.printf(bC + " %d " + blackBlackToWhiteRow + bG + bC + " 2 " + bG + " " + "\n", startLabel + labelIncrement);
-        System.out.printf(bC + " %d " + emptyWhiteToBlackRow + bG + " 3 " + bG + " " + "\n", startLabel + (2 * labelIncrement));
-        System.out.printf(bC + " %d " + emptyBlackToWhiteRow + bG + " 4 " + bG + " " + "\n", startLabel + (3 * labelIncrement));
-        System.out.printf(bC + " %d " + emptyWhiteToBlackRow + bG + " 5 " + bG + " " + "\n", startLabel + (4 * labelIncrement));
-        System.out.printf(bC + " %d " + emptyBlackToWhiteRow + bG + " 6 " + bG + " " + "\n", startLabel + (5 * labelIncrement));
-        System.out.printf(bC + " %d " + whiteWhiteToBlackRow + bG + bC + " 7 " + bG + " " + "\n", startLabel + (6 * labelIncrement));
-        System.out.printf(bC + " %d " + whiteBlackToWhiteRow + bG + bC + " 8 " + bG + " " + "\n", startLabel + (7 * labelIncrement));
-        System.out.printf(bG + bC + "   " + border + "\n");
+        var pC = SET_TEXT_COLOR_BLACK;
+        var bC = SET_BG_COLOR_BLACK;
+        System.out.printf(bG + pC + "   " + border + bG + "\n");
+        System.out.printf(bG + pC + " %d " + blackWhiteToBlackRow + bG + pC + " 1 " + bC + " " + "\n", startLabel);
+        System.out.printf(bG + pC + " %d " + blackBlackToWhiteRow + bG + pC + " 2 " + bC + " " + "\n", startLabel + labelIncrement);
+        System.out.printf(bG + pC + " %d " + emptyWhiteToBlackRow + bG + " 3 " + bC + " " + "\n", startLabel + (2 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + emptyBlackToWhiteRow + bG + " 4 " + bC + " " + "\n", startLabel + (3 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + emptyWhiteToBlackRow + bG + " 5 " + bC + " " + "\n", startLabel + (4 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + emptyBlackToWhiteRow + bG + " 6 " + bC + " " + "\n", startLabel + (5 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + whiteWhiteToBlackRow + bG + pC + " 7 " + bC + " " + "\n", startLabel + (6 * labelIncrement));
+        System.out.printf(bG + pC + " %d " + whiteBlackToWhiteRow + bG + pC + " 8 " + bC + " " + "\n", startLabel + (7 * labelIncrement));
+        System.out.printf(bG + pC + "   " + border + "\n");
     }
 
     public void errorHandler(HttpResponse<String> response) {

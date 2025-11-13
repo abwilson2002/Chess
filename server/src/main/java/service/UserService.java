@@ -89,6 +89,8 @@ public class UserService {
             whiteUsername = thisUser.username();
         } else if (game.color().equals("BLACK")) {
             blackUsername = thisUser.username();
+        } else if (game.color().equals("BLUE")) {
+            String chosenColor = "Spectator";
         } else {
             throw new DataAccessException("Error: bad request");
         }
@@ -96,7 +98,7 @@ public class UserService {
             if (existingGame.whiteUsername() != null) {
                 throw new DataAccessException("Error: Forbidden");
             }
-        } else {
+        } else if (game.color().equals("BLACK")) {
             if (existingGame.blackUsername() != null) {
                 throw new DataAccessException("Error: Forbidden");
             }
