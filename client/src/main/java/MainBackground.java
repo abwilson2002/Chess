@@ -1,16 +1,13 @@
 
 import chess.*;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
 import model.ListResponse;
-import org.eclipse.jetty.websocket.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static ui.EscapeSequences.*;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;

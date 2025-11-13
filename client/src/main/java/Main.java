@@ -1,5 +1,4 @@
 import chess.*;
-import org.eclipse.jetty.websocket.api.*;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Scanner;
