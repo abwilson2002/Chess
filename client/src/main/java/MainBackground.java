@@ -72,25 +72,30 @@ public class MainBackground {
                         requestInput = gson.toJson(input);
                     }
 
+                    try {
+                        var request = HttpRequest.newBuilder()
+                                .uri(new URI(pathedUrl))
+                                .header("Authorization", userAuth)
+                                .timeout(java.time.Duration.ofMillis(5000))
+                                .POST(HttpRequest.BodyPublishers.ofString(requestInput))
+                                .build();
 
-                    var request = HttpRequest.newBuilder()
-                            .uri(new URI(pathedUrl))
-                            .header("Authorization", userAuth)
-                            .timeout(java.time.Duration.ofMillis(5000))
-                            .POST(HttpRequest.BodyPublishers.ofString(requestInput))
-                            .build();
+                        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                        String responseBody = response.body();
 
-                    String responseBody = response.body();
+                        AuthData output = gson.fromJson(responseBody, AuthData.class);
 
-                    AuthData output = gson.fromJson(responseBody, AuthData.class);
+                        userAuth = output.authToken();
+                        user = output.username();
 
-                    userAuth = output.authToken();
-                    user = output.username();
-
-                    System.out.println("Logged in as: " + user + "\n");
-                    loggedIn = true;
+                        System.out.println("Logged in as: " + user + "\n");
+                        loggedIn = true;
+                    }
+                    catch (Exception ex) {
+                        System.out.println("Not a valid login");
+                        continue;
+                    }
                 }
                 case ("logout") -> {
                     String registerUrl = serverUrl + "/session";
@@ -285,22 +290,21 @@ public class MainBackground {
             labelIncrement = -1;
         }
         var bC = SET_TEXT_COLOR_BLACK;
-        System.out.printf(bG + bC + "   " + border + "\n");
-        System.out.printf(bC + " %d " + blackWhiteToBlackRow + bG + bC + " 1 " + "\n", startLabel);
-        System.out.printf(bC + " %d " + blackBlackToWhiteRow + bG + bC + " 2 " + "\n", startLabel + labelIncrement);
-        System.out.printf(bC + " %d " + emptyWhiteToBlackRow + bG + " 3 " + "\n", startLabel + (2 * labelIncrement));
-        System.out.printf(bC + " %d " + emptyBlackToWhiteRow + bG + " 4 " + "\n", startLabel + (3 * labelIncrement));
-        System.out.printf(bC + " %d " + emptyWhiteToBlackRow + bG + " 5 " + "\n", startLabel + (4 * labelIncrement));
-        System.out.printf(bC + " %d " + emptyBlackToWhiteRow + bG + " 6 " + "\n", startLabel + (5 * labelIncrement));
-        System.out.printf(bC + " %d " + whiteWhiteToBlackRow + bG + bC + " 7 " + "\n", startLabel + (6 * labelIncrement));
-        System.out.printf(bC + " %d " + whiteBlackToWhiteRow + bG + bC + " 8 " + "\n", startLabel + (7 * labelIncrement));
+        System.out.printf(bG + bC + "   " + border + bG + "\n");
+        System.out.printf(bC + " %d " + blackWhiteToBlackRow + bG + bC + " 1 " + bG + " " + "\n", startLabel);
+        System.out.printf(bC + " %d " + blackBlackToWhiteRow + bG + bC + " 2 " + bG + " " + "\n", startLabel + labelIncrement);
+        System.out.printf(bC + " %d " + emptyWhiteToBlackRow + bG + " 3 " + bG + " " + "\n", startLabel + (2 * labelIncrement));
+        System.out.printf(bC + " %d " + emptyBlackToWhiteRow + bG + " 4 " + bG + " " + "\n", startLabel + (3 * labelIncrement));
+        System.out.printf(bC + " %d " + emptyWhiteToBlackRow + bG + " 5 " + bG + " " + "\n", startLabel + (4 * labelIncrement));
+        System.out.printf(bC + " %d " + emptyBlackToWhiteRow + bG + " 6 " + bG + " " + "\n", startLabel + (5 * labelIncrement));
+        System.out.printf(bC + " %d " + whiteWhiteToBlackRow + bG + bC + " 7 " + bG + " " + "\n", startLabel + (6 * labelIncrement));
+        System.out.printf(bC + " %d " + whiteBlackToWhiteRow + bG + bC + " 8 " + bG + " " + "\n", startLabel + (7 * labelIncrement));
         System.out.printf(bG + bC + "   " + border + "\n");
     }
 
     public void errorHandler(HttpResponse<String> response) {
         int errorCode = response.statusCode();
-        var message = new Gson().fromJson(response.body(), Exception.class);
-        System.out.println(message.getMessage());
+        System.out.println(response.body());
     }
 
     public void gameMode() {
