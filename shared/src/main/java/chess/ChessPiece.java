@@ -209,17 +209,17 @@ public class ChessPiece implements Cloneable {
                     int colCheck = col + (holder2 * j);
                     ChessPosition temp = new ChessPosition(rowCheck, colCheck);
                     for (int k = 0; k < 2; k++) {
-                            if (withinBoard(rowCheck, colCheck)
-                                    && (!isSpaceFilled(board, temp))) {
-                                        possibleMoves.add(new ChessMove(myPosition, temp, null));
-                            } else if (withinBoard(rowCheck, colCheck)
-                                    && isSpaceEnemy(board, temp)) {
-                                        possibleMoves.add(new ChessMove(myPosition, temp, null));
-                            }
+                        if (withinBoard(rowCheck, colCheck)
+                                && (!isSpaceFilled(board, temp))) {
+                            possibleMoves.add(new ChessMove(myPosition, temp, null));
+                        } else if (withinBoard(rowCheck, colCheck)
+                                && isSpaceEnemy(board, temp)) {
+                            possibleMoves.add(new ChessMove(myPosition, temp, null));
                         }
                         rowCheck = row + (holder2 * i);
                         colCheck = col + (holder1 * j);
                         temp = new ChessPosition(rowCheck, colCheck);
+                    }
                     }
                 }
             }

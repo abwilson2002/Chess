@@ -164,7 +164,17 @@ public class Server {
             var serializer = new Gson();
             var auth = ctx.header("authorization");
             var input = serializer.fromJson(ctx.body(), Map.class);
-            var joinRequest = new JoinData((Double.parseDouble((String) input.get("gameID"))), (String) input.get("playerColor"), "gameName");
+            if (input.get("gameID") == null) {
+                throw new DataAccessException("Error: bad request");
+            }
+            var idClass = input.get("gameID").getClass();
+            double targetID;
+            if (idClass == String.class) {
+                targetID = Double.parseDouble((String) input.get("gameID"));
+            } else {
+                targetID = (Double) input.get("gameID");
+            }
+            var joinRequest = new JoinData(targetID, (String) input.get("playerColor"), "gameName");
             var service = new UserService(dataAccess);
             var joinResponse = service.join(joinRequest, auth);
             ctx.result(serializer.toJson(joinResponse));
@@ -180,7 +190,7 @@ public class Server {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(403).result(message);
             } else {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                String message = String.format("{\"message\": \"Error: %s\"}", ex.getMessage());
                 ctx.status(500).result(message);
             }
         }
