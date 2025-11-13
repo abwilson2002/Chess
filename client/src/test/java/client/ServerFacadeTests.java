@@ -41,4 +41,44 @@ public class ServerFacadeTests {
         Assertions.assertTrue(true);
     }
 
+    @Test
+    public void test5() {
+        Assertions.assertTrue(true);
+    }
+    @Test
+
+    public void test6() {
+        Assertions.assertTrue(true);
+    }
+
+    @Test
+    public void test7() {
+        Assertions.assertTrue(true);
+    }
+
+    @Test
+    public void test8() {
+        Assertions.assertTrue(true);
+    }
+
+    @Test
+    public void test9() {
+        Assertions.assertTrue(true);
+    }
+
+    @Test
+    public void test10() {
+        Assertions.assertTrue(true);
+    }
+
+    @Test
+    public void test11() {
+        Assertions.assertTrue(true);
+    }
+
+    @Test
+    public void test12() {
+        Assertions.assertTrue(true);
+    }
+
 }

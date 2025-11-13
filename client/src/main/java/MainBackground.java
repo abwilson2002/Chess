@@ -20,7 +20,6 @@ import java.util.Scanner;
 
 public class MainBackground {
 
-    private static final Logger log = LoggerFactory.getLogger(MainBackground.class);
     private String user = null;
     boolean signedIn = false;
     private String userAuth = "";
@@ -354,7 +353,7 @@ public class MainBackground {
         System.out.printf(bG + pC + " %d " + whiteBlackToWhiteRow + bG + pC + " 8 " + bC + " " + "\n", startLabel + (7 * labelIncrement));
         System.out.printf(bG + pC + "   " + border + "\n");
     }
-
+    /*
     public void errorHandler(HttpResponse<String> response) {
         int errorCode = response.statusCode();
         System.out.println(response.body());
@@ -362,5 +361,5 @@ public class MainBackground {
 
     public void gameMode() {
         return;
-    }
+    }*/
 }
