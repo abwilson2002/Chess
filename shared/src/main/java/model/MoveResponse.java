@@ -1,4 +1,6 @@
 package model;
 
-public record MoveResponse() {
+import chess.ChessGame;
+
+public record MoveResponse(ChessGame game) {
 }

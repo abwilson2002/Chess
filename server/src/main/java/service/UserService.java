@@ -118,7 +118,7 @@ public class UserService {
         try {
             game.makeMove(move.move());
             dataAccess.moveGame(game, move.gameID());
-            return new MoveResponse();
+            return new MoveResponse(game);
         } catch (Exception ex) {
             throw new DataAccessException("Invalid Move");
         }

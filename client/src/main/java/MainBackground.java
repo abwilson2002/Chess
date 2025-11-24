@@ -6,7 +6,12 @@ import model.GameData;
 import model.ListResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static chess.ChessPiece.PieceType.*;
 import static ui.EscapeSequences.*;
+import static ui.EscapeSequences.BLACK_KING;
+import static ui.EscapeSequences.BLACK_ROOK;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,6 +31,7 @@ public class MainBackground {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final String serverUrl;
     boolean loggedIn = false;
+    private String playerColor = null;
 
     public MainBackground(String serverName) throws Exception {
 
@@ -276,6 +282,8 @@ public class MainBackground {
                                             blackWhiteToBlackRow,
                                             false);
                                 }
+                                this.playerColor = playerColor;
+                                gameMode(gameID);
                             } else {
                                 System.out.println("Someone has already taken that spot or you misentered your command" +
                                         SET_BG_COLOR_BLACK + "\n");
@@ -371,8 +379,95 @@ public class MainBackground {
         int errorCode = response.statusCode();
         System.out.println(response.body());
     }
+    */
 
-    public void gameMode() {
-        return;
-    }*/
+    private void boardPrinter(ChessBoard board) {
+        var bG = SET_BG_COLOR_LIGHT_GREY;
+        var wBG = SET_BG_COLOR_WHITE;
+        var bBG = SET_BG_COLOR_BLACK;
+        int startLetter = 1;
+        int endLetter = 9;
+        int startNumber = 8;
+        int endNumber = 0;
+        int directionLetter = 1;
+        int directionNumber = -1;
+        boolean white = true;
+        String letters = " a   b  c   d   e   f  g   h    " + SET_BG_COLOR_BLACK;
+        if (Objects.equals(playerColor, "BLACK")) {
+            startLetter = 8;
+            endLetter = 0;
+            startNumber = 1;
+            endNumber = 9;
+            directionLetter = -1;
+            directionNumber = 1;
+            white = false;
+            letters = " h   g  f   e   d   c  b   a    " + SET_BG_COLOR_BLACK;
+        }
+        System.out.println(letters);
+        for (int i = startNumber; (white ? (i > endNumber) : (i < endNumber)); i += directionNumber) {
+            System.out.printf(bG + i + "\n");
+            for (int j = startLetter; (white ? (j < endLetter) : (j > endLetter)); j += directionLetter) {
+                var place = new ChessPosition(i, j);
+                if (tileColor(i, j)) {
+                    System.out.printf(wBG + pieceName(place, board));
+                } else {
+                    System.out.printf(bBG + pieceName(place, board));
+                }
+            }
+            System.out.printf(bG + i + "\n");
+        }
+        System.out.println(letters);
+    }
+
+    private boolean tileColor(int i, int j) {
+        boolean iCheck = (i % 2 == 0);
+        boolean jCheck = (j % 2 == 0);
+        return iCheck == jCheck;
+    }
+
+    private String pieceName(ChessPosition place, ChessBoard board) {
+        String encodedPiece = EMPTY;
+        ChessPiece piece = board.getPiece(place);
+        if (piece.equals(null)) {
+            return encodedPiece;
+        }
+        ChessPiece.PieceType type = piece.getPieceType();
+        if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            if (type == PAWN) {
+                encodedPiece = WHITE_PAWN;
+            } else if (type == ROOK) {
+                encodedPiece = WHITE_ROOK;
+            } else if (type == KNIGHT) {
+                encodedPiece = WHITE_KNIGHT;
+            } else if (type == BISHOP) {
+                encodedPiece = WHITE_BISHOP;
+            } else if (type == QUEEN) {
+                encodedPiece = WHITE_QUEEN;
+            } else {
+                encodedPiece = WHITE_KING;
+            }
+        } else {
+            if (type == PAWN) {
+                encodedPiece = BLACK_PAWN;
+            } else if (type == ROOK) {
+                encodedPiece = BLACK_ROOK;
+            } else if (type == KNIGHT) {
+                encodedPiece = BLACK_KNIGHT;
+            } else if (type == BISHOP) {
+                encodedPiece = BLACK_BISHOP;
+            } else if (type == QUEEN) {
+                encodedPiece = BLACK_QUEEN;
+            } else {
+                encodedPiece = BLACK_KING;
+            }
+        }
+        return encodedPiece;
+    }
+
+    public void gameMode(String gameID) {
+
+
+
+
+    }
 }
