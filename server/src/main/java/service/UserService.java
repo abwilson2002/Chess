@@ -108,6 +108,22 @@ public class UserService {
         return new JoinResponse();
     }
 
+    public MoveResponse move(MoveData move, String auth) throws DataAccessException {
+        var checkExistingUser = dataAccess.checkAuth(auth);
+        if (!checkExistingUser) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        var gameData = dataAccess.getGame(move.gameID());
+        var game = gameData.game();
+        try {
+            game.makeMove(move.move());
+            dataAccess.moveGame(game, move.gameID());
+            return new MoveResponse();
+        } catch (Exception ex) {
+            throw new DataAccessException("Invalid Move");
+        }
+    }
+
     public void clear() throws DataAccessException {
         try {
             dataAccess.clear();

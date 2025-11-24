@@ -2,5 +2,5 @@ package model;
 
 import chess.ChessMove;
 
-public record MoveData(Double gameID, ChessMove move, String color) {
+public record MoveData(Double gameID, ChessMove move) {
 }

@@ -227,7 +227,7 @@ public class Server {
                 throw new DataAccessException("Error: bad request");
             }
             double targetID = Double.parseDouble((String) input.get("gameID"));
-            var moveRequest = new MoveData(targetID, move, (String) input.get("playerColor"));
+            var moveRequest = new MoveData(targetID, move);
             var service = new UserService(dataAccess);
             var moveResponse = service.move(moveRequest, auth);
             ctx.result(serializer.toJson(moveResponse));
@@ -235,8 +235,8 @@ public class Server {
             if (ex.getMessage().equals("Error: bad request")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(400).result(message);
-            } else if (ex.getMessage().equals("Not your turn")) {
-                String message = "Not your turn yet";
+            } else if (ex.getMessage().equals("Invalid Move")) {
+                String message = "Your move was not valid";
                 ctx.status(202).result(message);
             } else if (ex.getMessage().equals("Error: unauthorized")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
