@@ -1,5 +1,8 @@
 package server;
 
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -42,6 +45,8 @@ public class Server {
         javalinObj.post("game", this::create);
 
         javalinObj.put("game", this::join);
+
+        javalinObj.put("game/play", this::move);
 
         javalinObj.delete("db", this::clear);
     }
@@ -183,6 +188,56 @@ public class Server {
             if (ex.getMessage().equals("Error: bad request")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Error: unauthorized")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            } else if (ex.getMessage().equals("Error: Forbidden")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(403).result(message);
+            } else {
+                String message = String.format("{\"message\": \"Error: %s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
+        }
+    }
+
+    private void move(Context ctx) throws DataAccessException {
+        try {
+            var serializer = new Gson();
+            var auth = ctx.header("authorization");
+            var input = serializer.fromJson(ctx.body(), Map.class);
+
+            ChessPosition start = new ChessPosition(
+                    (((String) input.get("start")).charAt(0) - '0'),
+                    (((String) input.get("start")).charAt(1) - '0'));
+
+            ChessPosition end = new ChessPosition(
+                    (((String) input.get("end")).charAt(0) - '0'),
+                    (((String) input.get("end")).charAt(1) - '0'));
+
+            ChessPiece.PieceType promote = null;
+
+            if (input.get("promote") != null) {
+                promote = ChessPiece.PieceType.valueOf((String)input.get("promote"));
+            }
+
+            var move = new ChessMove(start, end, promote);
+
+            if (input.get("gameID") == null) {
+                throw new DataAccessException("Error: bad request");
+            }
+            double targetID = Double.parseDouble((String) input.get("gameID"));
+            var moveRequest = new MoveData(targetID, move, (String) input.get("playerColor"));
+            var service = new UserService(dataAccess);
+            var moveResponse = service.move(moveRequest, auth);
+            ctx.result(serializer.toJson(moveResponse));
+        } catch (Exception ex) {
+            if (ex.getMessage().equals("Error: bad request")) {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            } else if (ex.getMessage().equals("Not your turn")) {
+                String message = "Not your turn yet";
+                ctx.status(202).result(message);
             } else if (ex.getMessage().equals("Error: unauthorized")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(401).result(message);
