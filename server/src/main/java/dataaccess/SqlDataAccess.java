@@ -285,6 +285,24 @@ public class SqlDataAccess implements DataAccess {
         catch (Exception ex) {
             throw new DataAccessException ("Error, not authorized", ex);
         }
+
+    }
+
+    public void moveGame(ChessGame game, Double gameID) throws DataAccessException {
+        String query = "UPDATE games SET game = ? WHERE gameID = ?";
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement(query)) {
+                var serializer = new Gson();
+                var encodedGame = serializer.toJson(game);
+                statement.setString(1, encodedGame);
+                statement.setDouble(2, gameID);
+                statement.executeUpdate();
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException ("Error, not authorized", ex);
+        }
+
     }
 
     @Override

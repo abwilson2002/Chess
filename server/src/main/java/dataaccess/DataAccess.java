@@ -1,4 +1,5 @@
 package dataaccess;
+import chess.ChessGame;
 import model.*;
 
 import java.sql.SQLDataException;
@@ -20,6 +21,7 @@ public interface DataAccess {
     Double createGame(String gameName) throws DataAccessException;
     GameData getGame(Double gameID) throws DataAccessException;
     void joinGame(String username, GameData game) throws DataAccessException;
+    void moveGame(ChessGame game, Double gameID) throws DataAccessException;
     Integer totalUsers();
     Integer totalAuths();
     Integer totalGames();
