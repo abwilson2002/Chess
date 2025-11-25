@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import static client.ui.EscapeSequences.*;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.net.http.*;
@@ -34,19 +35,53 @@ public class Main {
                         finished = true;
                     }
                     case ("register"), ("login") -> {
-                        bg.addUser(result);
+                        String pathedUrl;
+                        String requestInput;
+
+                        if (result.equals("register")) {
+                            pathedUrl = serverUrl + "/user";
+                            String username = scanner.next();
+                            String pass = scanner.next();
+                            String email = scanner.next();
+
+                            var input = Map.of("username", username, "password", pass, "email", email);
+                            requestInput = gson.toJson(input);
+                        } else {
+                            pathedUrl = serverUrl + "/session";
+                            String username = scanner.next();
+                            String pass = scanner.next();
+
+                            var input = Map.of("username", username, "password", pass);
+                            requestInput = gson.toJson(input);
+                        }
+                        bg.addUser(result, pathedUrl, requestInput);
                     }
                     case ("logout") -> {
                         bg.logoutUser();
                     }
                     case ("list"), ("create"), ("join") -> {
-                        bg.gameAction(result);
+                        String requestInput = "";
+                        String pathedUrl = "";
+                        String gameID = "";
+                        if (result.equals("create")) {
+                            String gameName = scanner.next();
+
+                            var input = Map.of("username", bg.user, "gameName", gameName);
+                            requestInput = gson.toJson(input);
+                        } else if (result.equals("join")) {
+                            gameID = scanner.next();
+                            String playerColor = scanner.next();
+
+                            var input = Map.of("username", bg.user, "gameID", gameID, "playerColor", playerColor);
+                            requestInput = gson.toJson(input);
+                        }
+                        bg.gameAction(result, pathedUrl, requestInput, gameID);
                     }
                     case ("help") -> {
                         bg.help();
                     }
                     case ("clear") -> {
-
+                        bg.clear();
                     }
                     default -> {
                         System.out.println(result + " is not a valid command, use help to see all valid commands\n");

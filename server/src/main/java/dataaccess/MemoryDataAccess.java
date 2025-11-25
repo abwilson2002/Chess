@@ -110,6 +110,11 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public void moveGame(ChessGame game, Double gameID) throws DataAccessException {
+        return;
+    }
+
+    @Override
     public void clear() {
         userList.clear();
         gameList.clear();

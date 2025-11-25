@@ -22,7 +22,7 @@ import java.util.Scanner;
 
 public class MainBackground {
 
-    private String user = null;
+    public String user = null;
     boolean signedIn = false;
     private String userAuth = "";
     private final HttpClient httpClient = HttpClient.newHttpClient();
@@ -37,29 +37,8 @@ public class MainBackground {
     }
 
 
-    public void addUser(String result) {
+    public void addUser(String result, String pathedUrl, String requestInput) {
         var gson = new Gson();
-        var scanner = new Scanner(System.in);
-        String pathedUrl;
-        String requestInput;
-
-        if (result.equals("register")) {
-            pathedUrl = serverUrl + "/user";
-            String username = scanner.next();
-            String pass = scanner.next();
-            String email = scanner.next();
-
-            var input = Map.of("username", username, "password", pass, "email", email);
-            requestInput = gson.toJson(input);
-        } else {
-            pathedUrl = serverUrl + "/session";
-            String username = scanner.next();
-            String pass = scanner.next();
-
-            var input = Map.of("username", username, "password", pass);
-            requestInput = gson.toJson(input);
-        }
-
         try {
             var request = HttpRequest.newBuilder()
                     .uri(new URI(pathedUrl))
@@ -117,9 +96,8 @@ public class MainBackground {
         }
     }
 
-    public void gameAction(String result) {
+    public void gameAction(String result, String pathedUrl, String requestInput, String gameID) {
         var gson = new Gson();
-        var scanner = new Scanner(System.in);
         if (!loggedIn) {
             System.out.println("Please log in or register before continuing" +
                     SET_BG_COLOR_BLACK + "\n");
@@ -157,11 +135,6 @@ public class MainBackground {
                     }
                 }
                 case ("create") -> {
-                    String gameName = scanner.next();
-
-                    var input = Map.of("username", user, "gameName", gameName);
-                    String requestInput = gson.toJson(input);
-
                     var request = HttpRequest.newBuilder()
                             .uri(new URI(registerUrl))
                             .header("Authorization", userAuth)
@@ -174,12 +147,6 @@ public class MainBackground {
                             SET_BG_COLOR_BLACK + "\n");
                 }
                 case ("join") -> {
-                    String gameID = scanner.next();
-                    String playerColor = scanner.next();
-
-                    var input = Map.of("username", user, "gameID", gameID, "playerColor", playerColor);
-                    String requestInput = gson.toJson(input);
-
                     var request = HttpRequest.newBuilder()
                             .uri(new URI(registerUrl))
                             .header("Authorization", userAuth)
@@ -192,6 +159,7 @@ public class MainBackground {
                     if (response.statusCode() == 200) {
                         this.playerColor = playerColor;
                         ChessBoard blankBoard = new ChessBoard();
+                        blankBoard.resetBoard();
                         boardPrinter(blankBoard);
                         gameMode(gameID);
                     } else {
@@ -311,7 +279,7 @@ public class MainBackground {
         int directionLetter = 1;
         int directionNumber = -1;
         boolean white = true;
-        String letters = " a   b  c   d   e   f  g   h    " + SET_BG_COLOR_BLACK;
+        String letters = "   a   b  c   d   e   f  g   h    " + SET_BG_COLOR_BLACK;
         if (Objects.equals(playerColor, "BLACK")) {
             startLetter = 8;
             endLetter = 0;
@@ -320,11 +288,11 @@ public class MainBackground {
             directionLetter = -1;
             directionNumber = 1;
             white = false;
-            letters = " h   g  f   e   d   c  b   a    " + SET_BG_COLOR_BLACK;
+            letters = "  h   g  f   e   d   c  b   a    " + SET_BG_COLOR_BLACK;
         }
-        System.out.println(letters);
+        System.out.println(SET_TEXT_COLOR_BLACK + letters);
         for (int i = startNumber; (white ? (i > endNumber) : (i < endNumber)); i += directionNumber) {
-            System.out.printf(bG + i + "\n");
+            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " ");
             for (int j = startLetter; (white ? (j < endLetter) : (j > endLetter)); j += directionLetter) {
                 var place = new ChessPosition(i, j);
                 if (tileColor(i, j)) {
@@ -333,9 +301,9 @@ public class MainBackground {
                     System.out.printf(bBG + pieceName(place, board));
                 }
             }
-            System.out.printf(bG + i + "\n");
+            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + "\n");
         }
-        System.out.println(letters);
+        System.out.println(SET_TEXT_COLOR_BLACK + letters);
     }
 
     private boolean tileColor(int i, int j) {
@@ -347,7 +315,7 @@ public class MainBackground {
     private String pieceName(ChessPosition place, ChessBoard board) {
         String encodedPiece = EMPTY;
         ChessPiece piece = board.getPiece(place);
-        if (piece.equals(null)) {
+        if (piece == null) {
             return encodedPiece;
         }
         ChessPiece.PieceType type = piece.getPieceType();
