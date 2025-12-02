@@ -14,7 +14,7 @@ import static java.lang.Math.abs;
 public class ChessGame {
 
     Boolean isWhiteTurn;
-    ChessBoard board;
+    ChessBoard board = new ChessBoard();
     transient ChessPiece whiteKing;
     transient ChessPosition whiteKingPos;
     transient ChessPiece blackKing;
@@ -42,14 +42,24 @@ public class ChessGame {
     }
 
     public ChessGame() {
+
+    }
+
+    public void startup() {
+
+    }
+
+    /*public void createChessGame() {
         isWhiteTurn = true;
-        board = new ChessBoard();
-        board.resetBoard();
+        if (board == null) {
+            board = new ChessBoard();
+            board.resetBoard();
+        }
         whiteKing = board.getPiece(new ChessPosition(1,5));
         whiteKingPos = new ChessPosition(1,5);
         blackKing = board.getPiece(new ChessPosition(8,5));
         blackKingPos = new ChessPosition(8,5);
-    }
+    }*/
 
     /**
      * @return Which team's turn it is
@@ -99,6 +109,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        startup();
         ChessPiece tempPiece = board.getPiece(startPosition);
         Collection<ChessMove> realPossibleMoves = new ArrayList<>();
         if (tempPiece == null) {
@@ -217,6 +228,7 @@ public class ChessGame {
         movingPiece.moved = true;
         board.getAllPieces().put(board.positionToString(end), movingPiece);
         board.getAllPieces().remove(board.positionToString(move.getStartPosition()));
+        getKingPosition();
         isInCheck(TeamColor.WHITE);
         isInCheck(TeamColor.BLACK);
         isWhiteTurn = !isWhiteTurn;

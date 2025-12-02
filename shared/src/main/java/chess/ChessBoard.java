@@ -14,7 +14,7 @@ import chess.ChessPiece.PieceType;
  */
 public class ChessBoard implements Cloneable{
 
-    private Map<String, ChessPiece> allPieces = new HashMap<>();
+    public Map<String, ChessPiece> allPieces = new HashMap<>();
     boolean whitePawnDoubleMove = false;
     boolean blackPawnDoubleMove = false;
     public ChessPosition enPassantPosition;

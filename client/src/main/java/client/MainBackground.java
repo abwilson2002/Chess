@@ -23,7 +23,6 @@ import java.util.Scanner;
 public class MainBackground {
 
     public String user = null;
-    boolean signedIn = false;
     private String userAuth = "";
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final String serverUrl;
@@ -37,7 +36,7 @@ public class MainBackground {
     }
 
 
-    public void addUser(String result, String pathedUrl, String requestInput) {
+    public void addUser(String pathedUrl, String requestInput) {
         var gson = new Gson();
         try {
             var request = HttpRequest.newBuilder()
@@ -229,11 +228,11 @@ public class MainBackground {
     }
 
 
-    public void running() throws URISyntaxException, IOException, InterruptedException {
+    /*public void running() throws URISyntaxException, IOException, InterruptedException {
 
     }
 
-    /*private void chessBoardCreator(String bG,
+    private void chessBoardCreator(String bG,
                                    String blackWhiteToBlackRow,
                                    String blackBlackToWhiteRow,
                                    String emptyBlackToWhiteRow,
@@ -279,7 +278,7 @@ public class MainBackground {
         int directionLetter = 1;
         int directionNumber = -1;
         boolean white = true;
-        String letters = "   a   b  c   d   e   f  g   h    " + SET_BG_COLOR_BLACK;
+        String letters = SET_BG_COLOR_LIGHT_GREY + "   a   b  c   d   e   f  g   h    " + SET_BG_COLOR_BLACK;
         if (Objects.equals(playerColor, "BLACK")) {
             startLetter = 8;
             endLetter = 0;
@@ -301,7 +300,7 @@ public class MainBackground {
                     System.out.printf(bBG + pieceName(place, board));
                 }
             }
-            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + "\n");
+            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + SET_BG_COLOR_BLACK + i + " " + "\n");
         }
         System.out.println(SET_TEXT_COLOR_BLACK + letters);
     }
@@ -354,8 +353,56 @@ public class MainBackground {
     }
 
     public void gameMode(String gameID) {
+        var scanner = new Scanner(System.in);
+        System.out.println(SET_TEXT_COLOR_YELLOW + SET_BG_COLOR_DARK_GREEN + "What is your game command?");
+        var result = scanner.next();
+        var gson = new Gson();
+
+        if (Objects.equals(result, "tester")) {
+            boolean stillGoing = true;
+            while (stillGoing) {
+                System.out.println("What move do you want to test?");
+                var command = scanner.next();
+                if (Objects.equals(command, "quit")) {
+                    stillGoing = false;
+                    continue;
+                }
+                var moveStart = command;
+                var moveEnd = scanner.next();
+                var promo = scanner.next();
+
+                var mapInput = Map.of("start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
+                String input = gson.toJson(mapInput);
 
 
+                String registerUrl = serverUrl + "/game/play";
+                try {
+                    var request = HttpRequest.newBuilder()
+                            .uri(new URI(registerUrl))
+                            .header("Authorization", userAuth)
+                            .timeout(java.time.Duration.ofMillis(5000))
+                            .PUT(HttpRequest.BodyPublishers.ofString(input))
+                            .build();
+
+                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    if (response.statusCode() == 200) {
+                        var responseBody = response.body();
+
+                        ChessGame progress = gson.fromJson(responseBody, ChessGame.class);
+
+                        boardPrinter(progress.getBoard());
+                    } else if (response.statusCode() == 202) {
+                        System.out.println("You move was not a valid move");
+                    } else {
+                        throw new Exception(response.body());
+                    }
+
+                } catch (Exception ex) {
+                    System.out.println("Error: Could not complete command");
+                }
+            }
+        }
 
 
     }

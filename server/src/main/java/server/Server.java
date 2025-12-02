@@ -7,6 +7,8 @@ import com.google.gson.Gson;
 import io.javalin.*;
 import io.javalin.http.Context;
 import java.util.Map;
+import java.util.Objects;
+
 import model.*;
 import dataaccess.*;
 import service.*;
@@ -217,7 +219,7 @@ public class Server {
 
             ChessPiece.PieceType promote = null;
 
-            if (input.get("promote") != null) {
+            if (!Objects.equals((String) input.get("promote"), "null")) {
                 promote = ChessPiece.PieceType.valueOf((String)input.get("promote"));
             }
 

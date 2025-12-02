@@ -54,7 +54,7 @@ public class Main {
                             var input = Map.of("username", username, "password", pass);
                             requestInput = gson.toJson(input);
                         }
-                        bg.addUser(result, pathedUrl, requestInput);
+                        bg.addUser(pathedUrl, requestInput);
                     }
                     case ("logout") -> {
                         bg.logoutUser();
