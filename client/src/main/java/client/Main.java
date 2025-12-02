@@ -61,7 +61,6 @@ public class Main {
                     }
                     case ("list"), ("create"), ("join") -> {
                         String requestInput = "";
-                        String pathedUrl = "";
                         String gameID = "";
                         if (result.equals("create")) {
                             String gameName = scanner.next();
@@ -75,7 +74,7 @@ public class Main {
                             var input = Map.of("username", bg.user, "gameID", gameID, "playerColor", playerColor);
                             requestInput = gson.toJson(input);
                         }
-                        bg.gameAction(result, pathedUrl, requestInput, gameID);
+                        bg.gameAction(result, requestInput, gameID);
                     }
                     case ("help") -> {
                         bg.help();

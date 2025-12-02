@@ -9,16 +9,17 @@ import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
 import model.ListResponse;
+import org.eclipse.jetty.websocket.api.WebSocketListener;
+
 import static client.ui.EscapeSequences.*;
 import static chess.ChessPiece.PieceType.*;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.WebSocket;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +29,7 @@ public class MainBackground {
 
     public String user = null;
     private String userAuth = "";
+    private WebSocket webSocket;
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final String serverUrl;
     boolean loggedIn = false;
@@ -53,7 +55,24 @@ public class MainBackground {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                throw new Exception();
+                switch (response.statusCode()) {
+                    case(400) -> {
+                        System.out.println("The command was incorrectly entered. Check for spelling and syntax, use help if needed" +
+                                SET_BG_COLOR_BLACK + "\n");
+                    }
+                    case(401) -> {
+                        System.out.println("You are not authorized to login with those credentials" +
+                                SET_BG_COLOR_BLACK + "\n");
+                    }
+                    case(403) -> {
+                        System.out.println("Someone has already taken that username" +
+                                SET_BG_COLOR_BLACK + "\n");
+                    }
+                    case(500) -> {
+                        System.out.println("Make sure the server has started" +
+                                SET_BG_COLOR_BLACK + "\n");
+                    }
+                }
             }
             String responseBody = response.body();
 
@@ -99,7 +118,7 @@ public class MainBackground {
         }
     }
 
-    public void gameAction(String result, String pathedUrl, String requestInput, String gameID) {
+    public void gameAction(String result, String requestInput, String gameID) {
         var gson = new Gson();
         if (!loggedIn) {
             System.out.println("Please log in or register before continuing" +
@@ -124,14 +143,22 @@ public class MainBackground {
                     List<GameData> output = rawOutput.games();
 
                     int i = 1;
+                    String whitePlayer = "Open";
+                    String blackPlayer = "Open";
                     for (GameData game : output) {
-                        var bG = SET_BG_COLOR_BLUE;
-                        var wC = SET_TEXT_COLOR_RED;
-                        System.out.printf(bG + wC + "Game: %d whiteUser: %s blackUser: %s GameName: %s" +
+                        if (game.whiteUsername() != null) {
+                            whitePlayer = game.whiteUsername();
+                        }
+                        if (game.blackUsername() != null) {
+                            blackPlayer = game.blackUsername();
+                        }
+                        System.out.printf(SET_BG_COLOR_BLUE +
+                                        SET_TEXT_COLOR_RED +
+                                        "Game: %d whiteUser: %s blackUser: %s GameName: %s" +
                                         SET_BG_COLOR_BLACK + "\n",
                                 i,
-                                game.whiteUsername(),
-                                game.blackUsername(),
+                                whitePlayer,
+                                blackPlayer,
                                 game.gameName()
                         );
                         i++;
@@ -161,13 +188,27 @@ public class MainBackground {
 
                     if (response.statusCode() == 200) {
                         this.playerColor = playerColor;
-                        ChessBoard blankBoard = new ChessBoard();
-                        blankBoard.resetBoard();
-                        boardPrinter(blankBoard.getAllPieces());
-                        gameMode(gameID);
+                        boolean observer = (Objects.equals(playerColor, "BLUE"));
+                        gameMode(gameID, observer);
                     } else {
-                        System.out.println("Someone has already taken that spot or you misentered your command" +
-                                SET_BG_COLOR_BLACK + "\n");
+                        switch (response.statusCode()) {
+                            case(400) -> {
+                                System.out.println("The command was incorrectly entered. Check for spelling and syntax, use help if needed" +
+                                        SET_BG_COLOR_BLACK + "\n");
+                            }
+                            case(401) -> {
+                                System.out.println("Login required before games can be joined" +
+                                        SET_BG_COLOR_BLACK + "\n");
+                            }
+                            case(403) -> {
+                                System.out.println("Someone has already taken that spot" +
+                                        SET_BG_COLOR_BLACK + "\n");
+                            }
+                            case(500) -> {
+                                System.out.println("Make sure the server has started" +
+                                        SET_BG_COLOR_BLACK + "\n");
+                            }
+                        }
                     }
                 }
             }
@@ -198,7 +239,7 @@ public class MainBackground {
         }
     }
 
-    public boolean clear() {
+    public void clear() {
         var gson = new Gson();
         var scanner = new Scanner(System.in);
         System.out.println("You have selected clear, enter your manager password to clear" +
@@ -228,53 +269,10 @@ public class MainBackground {
                 System.out.println("Error: Could not clear data");
             }
         }
-        return true;
     }
-
-
-    /*public void running() throws URISyntaxException, IOException, InterruptedException {
-
-    }
-
-    private void chessBoardCreator(String bG,
-                                   String blackWhiteToBlackRow,
-                                   String blackBlackToWhiteRow,
-                                   String emptyBlackToWhiteRow,
-                                   String emptyWhiteToBlackRow,
-                                   String whiteWhiteToBlackRow,
-                                   String whiteBlackToWhiteRow,
-                                   Boolean white) {
-        String border = " a   b  c   d   e   f  g   h    " + SET_BG_COLOR_BLACK;
-        int startLabel = 8;
-        int labelIncrement = -1;
-        if (!white) {
-            border = " h   g  f   e   d   c  b   a    " + SET_BG_COLOR_BLACK;
-            startLabel = 1;
-            labelIncrement = 1;
-        }
-        var pC = SET_TEXT_COLOR_BLACK;
-        var bC = SET_BG_COLOR_BLACK;
-        System.out.printf(bG + pC + "   " + border + "\n");
-        System.out.printf(bG + pC + " %d " + blackWhiteToBlackRow + bG + pC + " %d " + bC + " " + "\n", startLabel, startLabel);
-        System.out.printf(bG + pC + " %d " + blackBlackToWhiteRow + bG + pC + " %d " + bC + " " + "\n", startLabel + labelIncrement, startLabel + labelIncrement);
-        System.out.printf(bG + pC + " %d " + emptyWhiteToBlackRow + bG + " %d " + bC + " " + "\n", startLabel + (2 * labelIncrement) , startLabel + (2 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + emptyBlackToWhiteRow + bG + " %d " + bC + " " + "\n", startLabel + (3 * labelIncrement) , startLabel + (3 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + emptyWhiteToBlackRow + bG + " %d " + bC + " " + "\n", startLabel + (4 * labelIncrement) , startLabel + (4 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + emptyBlackToWhiteRow + bG + " %d " + bC + " " + "\n", startLabel + (5 * labelIncrement) , startLabel + (5 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + whiteWhiteToBlackRow + bG + pC + " %d " + bC + " " + "\n", startLabel + (6 * labelIncrement) , startLabel + (6 * labelIncrement));
-        System.out.printf(bG + pC + " %d " + whiteBlackToWhiteRow + bG + pC + " %d " + bC + " " + "\n", startLabel + (7 * labelIncrement) , startLabel + (7 * labelIncrement));
-        System.out.printf(bG + pC + "   " + border + "\n");
-    }
-    public void errorHandler(HttpResponse<String> response) {
-        int errorCode = response.statusCode();
-        System.out.println(response.body());
-    }
-    */
 
     private void boardPrinter(Map<String, ChessPiece> board) {
         var bG = SET_BG_COLOR_LIGHT_GREY;
-        var wBG = SET_BG_COLOR_WHITE;
-        var bBG = SET_BG_COLOR_BLACK;
         int startLetter = 1;
         int endLetter = 9;
         int startNumber = 8;
@@ -282,7 +280,7 @@ public class MainBackground {
         int directionLetter = 1;
         int directionNumber = -1;
         boolean white = true;
-        String letters = SET_BG_COLOR_LIGHT_GREY + "     a   b  c   d   e  f   g   h    " + SET_BG_COLOR_BLACK;
+        String letters = SET_BG_COLOR_LIGHT_GREY + "     a   b  c   d   e  f   g   h   " + SET_BG_COLOR_BLACK;
         if (Objects.equals(playerColor, "BLACK")) {
             startLetter = 8;
             endLetter = 0;
@@ -291,7 +289,7 @@ public class MainBackground {
             directionLetter = -1;
             directionNumber = 1;
             white = false;
-            letters = "  h   g  f   e   d   c  b   a    " + SET_BG_COLOR_BLACK;
+            letters = "  h   g  f   e   d   c  b   a   " + SET_BG_COLOR_BLACK;
         }
         System.out.println(SET_TEXT_COLOR_BLACK + letters);
         for (int i = startNumber; (white ? (i > endNumber) : (i < endNumber)); i += directionNumber) {
@@ -299,9 +297,9 @@ public class MainBackground {
             for (int j = startLetter; (white ? (j < endLetter) : (j > endLetter)); j += directionLetter) {
                 var place = new ChessPosition(i, j);
                 if (tileColor(i, j)) {
-                    System.out.printf(wBG + pieceName(place, board));
+                    System.out.printf(SET_BG_COLOR_WHITE + pieceName(place, board));
                 } else {
-                    System.out.printf(bBG + pieceName(place, board));
+                    System.out.printf(SET_BG_COLOR_BLACK + pieceName(place, board));
                 }
             }
             System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + SET_BG_COLOR_BLACK + "\n");
@@ -356,11 +354,35 @@ public class MainBackground {
         return encodedPiece;
     }
 
-    public void gameMode(String gameID) {
+    public void gameMode(String gameID, boolean observer) {
         var scanner = new Scanner(System.in);
-        String cR = SET_TEXT_COLOR_YELLOW + SET_BG_COLOR_DARK_GREEN; //cR stands for command Request
-        System.out.println(cR + "What is your command?" + SET_BG_COLOR_BLACK);
         var gson = new Gson();
+        String cR = SET_TEXT_COLOR_YELLOW + SET_BG_COLOR_DARK_GREEN; //cR stands for command Request
+        try {
+            String wsUrl = serverUrl.replace("http", "ws") + "/ws";
+
+            webSocket = HttpClient.newHttpClient().newWebSocketBuilder()
+                    .header("Authorization", userAuth)
+                    .buildAsync(URI.create(wsUrl), new WebSocketListener())
+                    .join();
+
+            var preMap = Map.of("gameID", gameID, "playerColor", playerColor, "userAuth", userAuth);
+
+            var startGame = gson.toJson(preMap);
+
+            webSocket.sendText(startGame, true);
+        } catch (Exception ex) {
+          System.out.println("Failed to connect to websocket");
+          return;
+        }
+
+        if (observer) {
+            System.out.println(cR + "Observing game " + gameID + SET_BG_COLOR_BLACK);
+
+
+            return;
+        }
+        System.out.println(cR + "What is your command?" + SET_BG_COLOR_BLACK);
         boolean stillGoing = true;
         while (stillGoing) {
             var result = scanner.nextLine().trim();
@@ -436,7 +458,18 @@ public class MainBackground {
                     }
                 }
             }
+        }
+        try {
+            webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Closing").join();
+        } catch (Exception ex) {
+            return;
+        }
+    }
 
+    private class WebSocketListener implements WebSocket.Listener {
+        @Override
+        public void onOpen(WebSocket webSocket) {
+            WebSocket.Listener.super.onOpen(webSocket);
         }
     }
 }

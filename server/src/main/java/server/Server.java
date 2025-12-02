@@ -15,15 +15,12 @@ import service.*;
 
 public class Server {
 
-    //private final UserService userService;
-
 
     public DataAccess dataAccess;
 
     private final Javalin javalinObj;
 
     public Server() {
-        //userService = new UserService(null);
         dataAccess = new SqlDataAccess();
         try {
             DatabaseManager.createDatabase();
@@ -51,6 +48,21 @@ public class Server {
         javalinObj.put("game/play", this::move);
 
         javalinObj.delete("db", this::clear);
+
+        javalinObj.ws("/ws", ws -> {
+            ws.onConnect(ctx -> {
+               ctx.enableAutomaticPings();
+               System.out.println("Connected");
+            });
+            ws.onMessage(ctx -> ctx.send(ctx.message()));
+            ws.onClose(_ -> System.out.println("Disconnected"));
+        });
+
+        javalinObj.ws("/ws/move", this::move);
+
+        javalinObj.ws("ws/leave", this::leave);
+
+        javalinObj.ws("/ws/board", this::board);
     }
 
 
@@ -203,6 +215,36 @@ public class Server {
         }
     }
 
+    public Character letterToNumber(Character l) {
+        switch(l) {
+            case('a') -> {
+                return '1';
+            }
+            case('b') -> {
+                return '2';
+            }
+            case('c') -> {
+                return '3';
+            }
+            case('d') -> {
+                return '4';
+            }
+            case('e') -> {
+                return '5';
+            }
+            case('f') -> {
+                return '6';
+            }
+            case('g') -> {
+                return '7';
+            }
+            case('h') -> {
+                return '8';
+            }
+        }
+        return ' ';
+    }
+
     private void move(Context ctx) throws DataAccessException {
         try {
             var serializer = new Gson();
@@ -211,11 +253,11 @@ public class Server {
 
             ChessPosition start = new ChessPosition(
                     (((String) input.get("start")).charAt(0) - '0'),
-                    (((String) input.get("start")).charAt(1) - '0'));
+                    letterToNumber(((String) input.get("start")).charAt(1)));
 
             ChessPosition end = new ChessPosition(
                     (((String) input.get("end")).charAt(0) - '0'),
-                    (((String) input.get("end")).charAt(1) - '0'));
+                    letterToNumber(((String) input.get("end")).charAt(1)));
 
             ChessPiece.PieceType promote = null;
 
