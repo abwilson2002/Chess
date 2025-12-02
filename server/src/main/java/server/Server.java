@@ -240,6 +240,12 @@ public class Server {
             } else if (ex.getMessage().equals("Invalid Move")) {
                 String message = "Your move was not valid";
                 ctx.status(202).result(message);
+            } else if (ex.getMessage().equals("Not your turn")) {
+                    String message = "It is not your turn to move";
+                    ctx.status(202).result(message);
+            } else if (ex.getMessage().equals("Not your piece")) {
+                String message = "You cannot move the other team's pieces. Keep your hands to yourself";
+                ctx.status(202).result(message);
             } else if (ex.getMessage().equals("Error: unauthorized")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(401).result(message);

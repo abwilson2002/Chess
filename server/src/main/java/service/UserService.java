@@ -113,8 +113,17 @@ public class UserService {
         if (!checkExistingUser) {
             throw new DataAccessException("Error: unauthorized");
         }
+        var user = dataAccess.getUser(auth, 1);
         var gameData = dataAccess.getGame(move.gameID());
         var game = gameData.game();
+        boolean whitePlayer = !Objects.equals(gameData.blackUsername(), user.username());
+        if (((game.getTeamTurn() == ChessGame.TeamColor.WHITE) & !whitePlayer) || (game.getTeamTurn() == ChessGame.TeamColor.BLACK) & whitePlayer) {
+            throw new DataAccessException("Not your turn");
+        }
+        if (((game.getBoard().getPiece(move.move().getStartPosition()).getTeamColor() == ChessGame.TeamColor.WHITE) & !whitePlayer)
+                || (game.getBoard().getPiece(move.move().getStartPosition()).getTeamColor() == ChessGame.TeamColor.BLACK) & whitePlayer) {
+            throw new DataAccessException("Not your piece");
+        }
         try {
             game.makeMove(move.move());
             dataAccess.moveGame(game, move.gameID());

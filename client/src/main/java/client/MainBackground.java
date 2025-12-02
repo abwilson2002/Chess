@@ -393,11 +393,9 @@ public class MainBackground {
                 case("move") -> {
                     var moveStart = commands[1];
                     var moveEnd = commands[2];
-                    String promo;
+                    String promo = "null";
                     if (commands.length > 3) {
                         promo = commands[3];
-                    } else {
-                        promo = "null";
                     }
 
                     var mapInput = Map.of("start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
@@ -428,7 +426,7 @@ public class MainBackground {
 
                             boardPrinter(progress);
                         } else if (response.statusCode() == 202) {
-                            System.out.println("You move was not a valid move");
+                            System.out.println(cR + response.body() + SET_BG_COLOR_BLACK);
                         } else {
                             throw new Exception(response.body());
                         }
