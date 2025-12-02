@@ -10,6 +10,8 @@ import model.AuthData;
 import model.GameData;
 import model.ListResponse;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import static client.ui.EscapeSequences.*;
 import static chess.ChessPiece.PieceType.*;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.concurrent.CompletionStage;
 
 public class MainBackground {
 
@@ -56,19 +59,19 @@ public class MainBackground {
 
             if (response.statusCode() != 200) {
                 switch (response.statusCode()) {
-                    case(400) -> {
+                    case (400) -> {
                         System.out.println("The command was incorrectly entered. Check for spelling and syntax, use help if needed" +
                                 SET_BG_COLOR_BLACK + "\n");
                     }
-                    case(401) -> {
+                    case (401) -> {
                         System.out.println("You are not authorized to login with those credentials" +
                                 SET_BG_COLOR_BLACK + "\n");
                     }
-                    case(403) -> {
+                    case (403) -> {
                         System.out.println("Someone has already taken that username" +
                                 SET_BG_COLOR_BLACK + "\n");
                     }
-                    case(500) -> {
+                    case (500) -> {
                         System.out.println("Make sure the server has started" +
                                 SET_BG_COLOR_BLACK + "\n");
                     }
@@ -84,8 +87,7 @@ public class MainBackground {
             System.out.println("Logged in as: " + user +
                     SET_BG_COLOR_BLACK + "\n");
             loggedIn = true;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             System.out.println("Not a valid input, use help to see command structure" +
                     SET_BG_COLOR_BLACK + "\n");
         }
@@ -127,7 +129,7 @@ public class MainBackground {
         }
         try {
             String registerUrl = serverUrl + "/game";
-            switch(result) {
+            switch (result) {
                 case ("list") -> {
                     var request = HttpRequest.newBuilder()
                             .uri(new URI(registerUrl))
@@ -192,19 +194,19 @@ public class MainBackground {
                         gameMode(gameID, observer);
                     } else {
                         switch (response.statusCode()) {
-                            case(400) -> {
+                            case (400) -> {
                                 System.out.println("The command was incorrectly entered. Check for spelling and syntax, use help if needed" +
                                         SET_BG_COLOR_BLACK + "\n");
                             }
-                            case(401) -> {
+                            case (401) -> {
                                 System.out.println("Login required before games can be joined" +
                                         SET_BG_COLOR_BLACK + "\n");
                             }
-                            case(403) -> {
+                            case (403) -> {
                                 System.out.println("Someone has already taken that spot" +
                                         SET_BG_COLOR_BLACK + "\n");
                             }
-                            case(500) -> {
+                            case (500) -> {
                                 System.out.println("Make sure the server has started" +
                                         SET_BG_COLOR_BLACK + "\n");
                             }
@@ -354,6 +356,36 @@ public class MainBackground {
         return encodedPiece;
     }
 
+    public Character letterToNumber(Character l) {
+        switch (l) {
+            case ('a') -> {
+                return '1';
+            }
+            case ('b') -> {
+                return '2';
+            }
+            case ('c') -> {
+                return '3';
+            }
+            case ('d') -> {
+                return '4';
+            }
+            case ('e') -> {
+                return '5';
+            }
+            case ('f') -> {
+                return '6';
+            }
+            case ('g') -> {
+                return '7';
+            }
+            case ('h') -> {
+                return '8';
+            }
+        }
+        return ' ';
+    }
+
     public void gameMode(String gameID, boolean observer) {
         var scanner = new Scanner(System.in);
         var gson = new Gson();
@@ -366,14 +398,14 @@ public class MainBackground {
                     .buildAsync(URI.create(wsUrl), new WebSocketListener())
                     .join();
 
-            var preMap = Map.of("gameID", gameID, "playerColor", playerColor, "userAuth", userAuth);
-
-            var startGame = gson.toJson(preMap);
+            var commandType = UserGameCommand.CommandType.CONNECT;
+            var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+            var startGame = gson.toJson(command);
 
             webSocket.sendText(startGame, true);
         } catch (Exception ex) {
-          System.out.println("Failed to connect to websocket");
-          return;
+            System.out.println("Failed to connect to websocket");
+            return;
         }
 
         if (observer) {
@@ -387,19 +419,28 @@ public class MainBackground {
         while (stillGoing) {
             var result = scanner.nextLine().trim();
             String[] commands = result.split("\\s+");
-            switch(commands[0]) {
-                case("resign") -> {
+            switch (commands[0]) {
+                case ("resign") -> {
+                    var commandType = UserGameCommand.CommandType.RESIGN;
+                    var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    webSocket.sendText(gson.toJson(command), true);
                     stillGoing = false;
                     continue;
                 }
-                case("leave") -> {
+                case ("leave") -> {
+                    var commandType = UserGameCommand.CommandType.LEAVE;
+                    var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    webSocket.sendText(gson.toJson(command), true);
                     stillGoing = false;
                     continue;
                 }
-                case("highlight") -> {
+                case ("highlight") -> {
 
                 }
-                case("help") -> {
+                case ("update") -> {
+
+                }
+                case ("help") -> {
                     if (commands.length == 1) {
                         System.out.println("resign : forfeits the game for you");
                         System.out.println("leave : the cowards way out, leave without forfeiting");
@@ -412,24 +453,45 @@ public class MainBackground {
                         System.out.println("            note: leave blank if you cannot promote");
                     }
                 }
-                case("move") -> {
+                case ("move") -> {
                     var moveStart = commands[1];
                     var moveEnd = commands[2];
                     String promo = "null";
+                    ChessPiece.PieceType promote = null;
                     if (commands.length > 3) {
                         promo = commands[3];
                     }
+                    var commandType = UserGameCommand.CommandType.MAKE_MOVE;
+                    var input = Map.of("commandType", commandType, "start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
 
-                    var mapInput = Map.of("start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
-                    String input = gson.toJson(mapInput);
+                    ChessPosition start = new ChessPosition(
+                            ((moveStart.charAt(0) - '0')),
+                            letterToNumber((moveStart.charAt(1))));
 
-                    String registerUrl = serverUrl + "/game/play";
+                    ChessPosition end = new ChessPosition(
+                            ((moveEnd.charAt(0) - '0')),
+                            letterToNumber((moveEnd.charAt(1))));
+
+                    if (!promo.equals("null")) {
+                        promote = ChessPiece.PieceType.valueOf(promo);
+                    }
+                    var move = new ChessMove(start, end, promote);
+
+                    Integer targetID = Integer.parseInt(gameID);
+
+                    UserGameCommand moveCommand = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, userAuth, targetID, move);
+
+                    var moveInput = gson.toJson(moveCommand);
+
+                    webSocket.sendText(moveInput, true);
+
+                    /*String registerUrl = serverUrl + "/game/play";
                     try {
                         var request = HttpRequest.newBuilder()
                                 .uri(new URI(registerUrl))
                                 .header("Authorization", userAuth)
                                 .timeout(java.time.Duration.ofMillis(5000))
-                                .PUT(HttpRequest.BodyPublishers.ofString(input))
+                                .PUT(HttpRequest.BodyPublishers.ofString(mapInput))
                                 .build();
 
                         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -455,21 +517,56 @@ public class MainBackground {
 
                     } catch (Exception ex) {
                         System.out.println("Error: Could not complete command");
-                    }
+                    }*/
                 }
             }
+            try {
+                webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Closing").join();
+            } catch (Exception ex) {
+                return;
+            }
         }
-        try {
-            webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Closing").join();
-        } catch (Exception ex) {
-            return;
-        }
-    }
 
-    private class WebSocketListener implements WebSocket.Listener {
-        @Override
-        public void onOpen(WebSocket webSocket) {
-            WebSocket.Listener.super.onOpen(webSocket);
+        class WebSocketListener implements WebSocket.Listener {
+            @Override
+            public void onOpen(WebSocket webSocket) {
+                WebSocket.Listener.super.onOpen(webSocket);
+            }
+
+            public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+                String message = data.toString();
+                var gson = new Gson();
+
+                ServerMessage command = gson.fromJson(message, ServerMessage.class);
+
+                switch (command.getServerMessageType()) {
+                    case LOAD_GAME -> {
+                        Type type = new TypeToken<Map<String, ChessPiece>>() {
+                        }.getType();
+
+                        Map<String, ChessPiece> progress = gson.fromJson(message, type);
+
+                        boardPrinter(progress);
+                    }
+                    case ERROR -> {
+                        var error = gson.fromJson(message, String.class);
+                        System.out.println("Error: " + error);
+                    }
+                    case NOTIFICATION -> {
+                        String notif = gson.fromJson(message, String.class);
+                        System.out.println(notif);
+                    }
+                }
+                return WebSocket.Listener.super.onText(webSocket, data, last);
+            }
+
+            public void onClose(WebSocket webSocket) {
+                WebSocket.Listener.super.onClose(webSocket, 200, "Done");
+            }
+
+            public void onError(WebSocket webSocket, Exception ex) {
+                WebSocket.Listener.super.onError(webSocket, ex);
+            }
         }
     }
 }

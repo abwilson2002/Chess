@@ -6,15 +6,21 @@ import chess.ChessPosition;
 import com.google.gson.Gson;
 import io.javalin.*;
 import io.javalin.http.Context;
+
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
+import io.javalin.websocket.WsMessageContext;
 import model.*;
 import dataaccess.*;
 import service.*;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 public class Server {
 
+    private final ConnectionManager gameConnections = new ConnectionManager();
 
     public DataAccess dataAccess;
 
@@ -45,8 +51,6 @@ public class Server {
 
         javalinObj.put("game", this::join);
 
-        javalinObj.put("game/play", this::move);
-
         javalinObj.delete("db", this::clear);
 
         javalinObj.ws("/ws", ws -> {
@@ -54,15 +58,27 @@ public class Server {
                ctx.enableAutomaticPings();
                System.out.println("Connected");
             });
-            ws.onMessage(ctx -> ctx.send(ctx.message()));
+            ws.onMessage(ctx -> {
+                var gson = new Gson();
+                UserGameCommand command = gson.fromJson(ctx.message(), UserGameCommand.class);
+
+                switch(command.getCommandType()) {
+                    case CONNECT -> {
+                        gameConnections.addConnection(command.getGameID(), ctx.session);
+                    }
+                    case MAKE_MOVE -> {
+                        move(command, ctx);
+                    }
+                    case LEAVE -> {
+                        gameConnections.removeConnection(ctx.session);
+                    }
+                    case RESIGN -> {
+                        gameConnections.removeConnection(ctx.session);
+                    }
+                }
+            });
             ws.onClose(_ -> System.out.println("Disconnected"));
         });
-
-        javalinObj.ws("/ws/move", this::move);
-
-        javalinObj.ws("ws/leave", this::leave);
-
-        javalinObj.ws("/ws/board", this::board);
     }
 
 
@@ -215,89 +231,27 @@ public class Server {
         }
     }
 
-    public Character letterToNumber(Character l) {
-        switch(l) {
-            case('a') -> {
-                return '1';
-            }
-            case('b') -> {
-                return '2';
-            }
-            case('c') -> {
-                return '3';
-            }
-            case('d') -> {
-                return '4';
-            }
-            case('e') -> {
-                return '5';
-            }
-            case('f') -> {
-                return '6';
-            }
-            case('g') -> {
-                return '7';
-            }
-            case('h') -> {
-                return '8';
-            }
-        }
-        return ' ';
-    }
-
-    private void move(Context ctx) throws DataAccessException {
+    private void move(UserGameCommand command, WsMessageContext ctx) throws IOException {
         try {
             var serializer = new Gson();
-            var auth = ctx.header("authorization");
-            var input = serializer.fromJson(ctx.body(), Map.class);
+            var auth = command.getAuthToken();
+            var targetID = Double.valueOf(command.getGameID());
+            var move = command.getMove();
 
-            ChessPosition start = new ChessPosition(
-                    (((String) input.get("start")).charAt(0) - '0'),
-                    letterToNumber(((String) input.get("start")).charAt(1)));
-
-            ChessPosition end = new ChessPosition(
-                    (((String) input.get("end")).charAt(0) - '0'),
-                    letterToNumber(((String) input.get("end")).charAt(1)));
-
-            ChessPiece.PieceType promote = null;
-
-            if (!Objects.equals((String) input.get("promote"), "null")) {
-                promote = ChessPiece.PieceType.valueOf((String)input.get("promote"));
-            }
-
-            var move = new ChessMove(start, end, promote);
-
-            if (input.get("gameID") == null) {
-                throw new DataAccessException("Error: bad request");
-            }
-            double targetID = Double.parseDouble((String) input.get("gameID"));
             var moveRequest = new MoveData(targetID, move);
             var service = new UserService(dataAccess);
             var moveResponse = service.move(moveRequest, auth);
-            ctx.result(serializer.toJson(moveResponse));
-        } catch (Exception ex) {
-            if (ex.getMessage().equals("Error: bad request")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(400).result(message);
-            } else if (ex.getMessage().equals("Invalid Move")) {
-                String message = "Your move was not valid";
-                ctx.status(202).result(message);
-            } else if (ex.getMessage().equals("Not your turn")) {
-                    String message = "It is not your turn to move";
-                    ctx.status(202).result(message);
-            } else if (ex.getMessage().equals("Not your piece")) {
-                String message = "You cannot move the other team's pieces. Keep your hands to yourself";
-                ctx.status(202).result(message);
-            } else if (ex.getMessage().equals("Error: unauthorized")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(401).result(message);
-            } else if (ex.getMessage().equals("Error: Forbidden")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(403).result(message);
-            } else {
-                String message = String.format("{\"message\": \"Error: %s\"}", ex.getMessage());
-                ctx.status(500).result(message);
+            var loadMessage = new LoadGameMessage(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME), moveResponse.board());
+            var gson = new Gson();
+            var jsonMessage = gson.toJson(loadMessage);
+            for (var session : gameConnections.getAllSessions(targetID)) {
+                session.getRemote().sendString((gson.toJson(jsonMessage)));
             }
+
+        } catch (Exception ex) {
+            var errorMessage = "Error: " + ex.getMessage();
+            var gson = new Gson();
+            ctx.session.getRemote().sendString(gson.toJson(errorMessage));
         }
     }
 
