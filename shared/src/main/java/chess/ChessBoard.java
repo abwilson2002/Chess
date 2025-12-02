@@ -22,7 +22,7 @@ public class ChessBoard implements Cloneable{
     public ChessBoard() {
     }
 
-    String positionToString(ChessPosition position) {
+    public static String positionToString(ChessPosition position) {
         return position.getRow() + "_" + position.getColumn();
     }
 

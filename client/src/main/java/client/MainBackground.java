@@ -2,14 +2,18 @@ package client;
 
 import chess.*;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
 import model.ListResponse;
 import static client.ui.EscapeSequences.*;
-
 import static chess.ChessPiece.PieceType.*;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -159,7 +163,7 @@ public class MainBackground {
                         this.playerColor = playerColor;
                         ChessBoard blankBoard = new ChessBoard();
                         blankBoard.resetBoard();
-                        boardPrinter(blankBoard);
+                        boardPrinter(blankBoard.getAllPieces());
                         gameMode(gameID);
                     } else {
                         System.out.println("Someone has already taken that spot or you misentered your command" +
@@ -267,7 +271,7 @@ public class MainBackground {
     }
     */
 
-    private void boardPrinter(ChessBoard board) {
+    private void boardPrinter(Map<String, ChessPiece> board) {
         var bG = SET_BG_COLOR_LIGHT_GREY;
         var wBG = SET_BG_COLOR_WHITE;
         var bBG = SET_BG_COLOR_BLACK;
@@ -278,7 +282,7 @@ public class MainBackground {
         int directionLetter = 1;
         int directionNumber = -1;
         boolean white = true;
-        String letters = SET_BG_COLOR_LIGHT_GREY + "   a   b  c   d   e   f  g   h    " + SET_BG_COLOR_BLACK;
+        String letters = SET_BG_COLOR_LIGHT_GREY + "     a   b  c   d   e  f   g   h    " + SET_BG_COLOR_BLACK;
         if (Objects.equals(playerColor, "BLACK")) {
             startLetter = 8;
             endLetter = 0;
@@ -300,7 +304,7 @@ public class MainBackground {
                     System.out.printf(bBG + pieceName(place, board));
                 }
             }
-            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + SET_BG_COLOR_BLACK + i + " " + "\n");
+            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + SET_BG_COLOR_BLACK + "\n");
         }
         System.out.println(SET_TEXT_COLOR_BLACK + letters);
     }
@@ -311,9 +315,9 @@ public class MainBackground {
         return iCheck == jCheck;
     }
 
-    private String pieceName(ChessPosition place, ChessBoard board) {
+    private String pieceName(ChessPosition place, Map<String, ChessPiece> board) {
         String encodedPiece = EMPTY;
-        ChessPiece piece = board.getPiece(place);
+        ChessPiece piece = board.get(ChessBoard.positionToString(place));
         if (piece == null) {
             return encodedPiece;
         }
@@ -354,56 +358,87 @@ public class MainBackground {
 
     public void gameMode(String gameID) {
         var scanner = new Scanner(System.in);
-        System.out.println(SET_TEXT_COLOR_YELLOW + SET_BG_COLOR_DARK_GREEN + "What is your game command?");
-        var result = scanner.next();
+        String cR = SET_TEXT_COLOR_YELLOW + SET_BG_COLOR_DARK_GREEN; //cR stands for command Request
+        System.out.println(cR + "What is your command?" + SET_BG_COLOR_BLACK);
         var gson = new Gson();
-
-        if (Objects.equals(result, "tester")) {
-            boolean stillGoing = true;
-            while (stillGoing) {
-                System.out.println("What move do you want to test?");
-                var command = scanner.next();
-                if (Objects.equals(command, "quit")) {
+        boolean stillGoing = true;
+        while (stillGoing) {
+            var result = scanner.nextLine().trim();
+            String[] commands = result.split("\\s+");
+            switch(commands[0]) {
+                case("resign") -> {
                     stillGoing = false;
                     continue;
                 }
-                var moveStart = command;
-                var moveEnd = scanner.next();
-                var promo = scanner.next();
+                case("leave") -> {
+                    stillGoing = false;
+                    continue;
+                }
+                case("highlight") -> {
 
-                var mapInput = Map.of("start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
-                String input = gson.toJson(mapInput);
-
-
-                String registerUrl = serverUrl + "/game/play";
-                try {
-                    var request = HttpRequest.newBuilder()
-                            .uri(new URI(registerUrl))
-                            .header("Authorization", userAuth)
-                            .timeout(java.time.Duration.ofMillis(5000))
-                            .PUT(HttpRequest.BodyPublishers.ofString(input))
-                            .build();
-
-                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-                    if (response.statusCode() == 200) {
-                        var responseBody = response.body();
-
-                        ChessGame progress = gson.fromJson(responseBody, ChessGame.class);
-
-                        boardPrinter(progress.getBoard());
-                    } else if (response.statusCode() == 202) {
-                        System.out.println("You move was not a valid move");
+                }
+                case("help") -> {
+                    if (commands.length == 1) {
+                        System.out.println("resign : forfeits the game for you");
+                        System.out.println("leave : the cowards way out, leave without forfeiting");
+                        System.out.println("highlight <position> : highlights the possible moves at a position");
+                        System.out.println("move <move from position> <move to position> <promotion piece> : move a piece, see help(2) for details");
+                        System.out.println("help page2 : shows more details about how to input commands");
                     } else {
-                        throw new Exception(response.body());
+                        System.out.println("<position> : type in the position using the number then the letter (ie. 2f or 6a");
+                        System.out.println("promotion : If you can promote, type in the piece's promotion in all caps (ie. QUEEN)");
+                        System.out.println("            note: leave blank if you cannot promote");
+                    }
+                }
+                case("move") -> {
+                    var moveStart = commands[1];
+                    var moveEnd = commands[2];
+                    String promo;
+                    if (commands.length > 3) {
+                        promo = commands[3];
+                    } else {
+                        promo = "null";
                     }
 
-                } catch (Exception ex) {
-                    System.out.println("Error: Could not complete command");
+                    var mapInput = Map.of("start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
+                    String input = gson.toJson(mapInput);
+
+                    String registerUrl = serverUrl + "/game/play";
+                    try {
+                        var request = HttpRequest.newBuilder()
+                                .uri(new URI(registerUrl))
+                                .header("Authorization", userAuth)
+                                .timeout(java.time.Duration.ofMillis(5000))
+                                .PUT(HttpRequest.BodyPublishers.ofString(input))
+                                .build();
+
+                        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                        if (response.statusCode() == 200) {
+                            var responseBody = response.body();
+
+                            JsonElement root = JsonParser.parseString(responseBody);
+
+                            JsonObject allPiecesMap = root.getAsJsonObject().getAsJsonObject("board");
+
+                            Type type = new TypeToken<Map<String, ChessPiece>>() {
+                            }.getType();
+
+                            Map<String, ChessPiece> progress = gson.fromJson(allPiecesMap, type);
+
+                            boardPrinter(progress);
+                        } else if (response.statusCode() == 202) {
+                            System.out.println("You move was not a valid move");
+                        } else {
+                            throw new Exception(response.body());
+                        }
+
+                    } catch (Exception ex) {
+                        System.out.println("Error: Could not complete command");
+                    }
                 }
             }
+
         }
-
-
     }
 }

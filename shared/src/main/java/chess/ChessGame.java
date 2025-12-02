@@ -42,24 +42,13 @@ public class ChessGame {
     }
 
     public ChessGame() {
-
-    }
-
-    public void startup() {
-
-    }
-
-    /*public void createChessGame() {
         isWhiteTurn = true;
-        if (board == null) {
-            board = new ChessBoard();
-            board.resetBoard();
-        }
+        board.resetBoard();
         whiteKing = board.getPiece(new ChessPosition(1,5));
         whiteKingPos = new ChessPosition(1,5);
         blackKing = board.getPiece(new ChessPosition(8,5));
         blackKingPos = new ChessPosition(8,5);
-    }*/
+    }
 
     /**
      * @return Which team's turn it is
@@ -109,7 +98,6 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        startup();
         ChessPiece tempPiece = board.getPiece(startPosition);
         Collection<ChessMove> realPossibleMoves = new ArrayList<>();
         if (tempPiece == null) {

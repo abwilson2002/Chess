@@ -18,6 +18,10 @@ public class ChessPosition {
         number = row;
     }
 
+    public ChessPosition() {
+
+    }
+
     /**
      * @return which row this position is in
      * 1 codes for the bottom row

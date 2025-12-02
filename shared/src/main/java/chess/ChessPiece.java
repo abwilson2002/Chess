@@ -45,6 +45,10 @@ public class ChessPiece implements Cloneable {
         this.type = type;
     }
 
+    public ChessPiece() {
+
+    }
+
     @Override
     public ChessPiece clone() {
         try {

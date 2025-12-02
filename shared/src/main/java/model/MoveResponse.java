@@ -1,6 +1,8 @@
 package model;
 
-import chess.ChessGame;
+import chess.ChessPiece;
 
-public record MoveResponse(ChessGame game) {
+import java.util.Map;
+
+public record MoveResponse(Map<String, ChessPiece> board) {
 }
