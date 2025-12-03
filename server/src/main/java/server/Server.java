@@ -71,15 +71,17 @@ public class Server {
                     }
                     case LEAVE -> {
                         gameConnections.removeConnection(ctx.session);
+                        leave(command, ctx);
                     }
                     case RESIGN -> {
                         gameConnections.removeConnection(ctx.session);
+                        resign(command, ctx);
                     }
                     case LOAD -> {
                         load(command, ctx);
                     }
                     case HIGHLIGHT -> {
-
+                        highlight(command, ctx);
                     }
                 }
             });
@@ -249,18 +251,21 @@ public class Server {
             var loadMessage = new LoadGameMessage(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME), moveResponse.board());
             var gson = new Gson();
             var jsonMessage = gson.toJson(loadMessage);
+            var moveMade = Map.of("type", ServerMessage.ServerMessageType.NOTIFICATION, "message", moveResponse.user());
+            var jsonNotif = gson.toJson(moveMade);
             for (var session : gameConnections.getAllSessions(targetID)) {
                 session.getRemote().sendString(jsonMessage);
+                session.getRemote().sendString(jsonNotif);
             }
-
         } catch (Exception ex) {
             var errorMessage = "Error: " + ex.getMessage();
+            var output = Map.of("type", ServerMessage.ServerMessageType.ERROR, "message", errorMessage);
             var gson = new Gson();
-            ctx.session.getRemote().sendString(gson.toJson(errorMessage));
+            ctx.session.getRemote().sendString(gson.toJson(output));
         }
     }
 
-    private void load(UserGameCommand command, WsMessageContext ctx) {
+    private void load(UserGameCommand command, WsMessageContext ctx) throws IOException {
         try {
             var auth = command.getAuthToken();
             var targetID = Double.valueOf(command.getGameID());
@@ -273,8 +278,53 @@ public class Server {
             ctx.session.getRemote().sendString(message);
         } catch (Exception ex) {
             var errorMessage = "Error: " + ex.getMessage();
+            var output = Map.of("type", ServerMessage.ServerMessageType.ERROR, "message", errorMessage);
             var gson = new Gson();
-            System.out.println(errorMessage);
+            ctx.session.getRemote().sendString(gson.toJson(output));
+        }
+    }
+
+    private void leave(UserGameCommand command, WsMessageContext ctx) throws IOException {
+        try {
+            var auth = command.getAuthToken();
+            var targetID = Double.valueOf(command.getGameID());
+            var leaveRequest = new LeaveGameData(targetID, auth);
+            var service = new UserService(dataAccess);
+            var leaveResponse = service.leave(leaveRequest);
+            var leaveString = leaveResponse.user() + " has taken the cowards way out and left without resigning";
+            var leaveMessage = Map.of("type", ServerMessage.ServerMessageType.NOTIFICATION, "message", leaveString);
+            var gson = new Gson();
+            var message = gson.toJson(leaveMessage);
+            ctx.session.getRemote().sendString(message);
+        } catch (Exception ex) {
+            var errorMessage = "Error: " + ex.getMessage();
+            var output = Map.of("type", ServerMessage.ServerMessageType.ERROR, "message", errorMessage);
+            var gson = new Gson();
+            ctx.session.getRemote().sendString(gson.toJson(output));
+        }
+    }
+
+    private void resign(UserGameCommand command, WsMessageContext ctx) throws IOException {
+
+    }
+
+    private void highlight(UserGameCommand command, WsMessageContext ctx) throws IOException {
+        try {
+            var auth = command.getAuthToken();
+            var targetID = Double.valueOf(command.getGameID());
+            var highRequest = new LoadGameData(targetID, auth);
+            var service = new UserService(dataAccess);
+            var highResponse = service.highlight(highRequest);
+            var highMessage = new HighlightMessage(ServerMessage.ServerMessageType.LOAD_HIGHLIGHT,
+                    highResponse.allPieces(),
+                    highResponse.moves());
+            var gson = new Gson();
+            ctx.session.getRemote().sendString(gson.toJson(highMessage));
+        } catch (Exception ex) {
+            var errorMessage = "Error: " + ex.getMessage();
+            var output = Map.of("type", ServerMessage.ServerMessageType.ERROR, "message", errorMessage);
+            var gson = new Gson();
+            ctx.session.getRemote().sendString(gson.toJson(output));
         }
     }
 

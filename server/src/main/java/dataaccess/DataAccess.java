@@ -22,6 +22,7 @@ public interface DataAccess {
     GameData getGame(Double gameID) throws DataAccessException;
     void joinGame(String username, GameData game) throws DataAccessException;
     void moveGame(ChessGame game, Double gameID) throws DataAccessException;
+    void dropPlayer(String username, Double gameID) throws DataAccessException;
     Integer totalUsers();
     Integer totalAuths();
     Integer totalGames();

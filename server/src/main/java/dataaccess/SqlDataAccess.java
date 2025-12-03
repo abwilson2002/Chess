@@ -302,7 +302,24 @@ public class SqlDataAccess implements DataAccess {
         catch (Exception ex) {
             throw new DataAccessException ("Error, not authorized", ex);
         }
+    }
 
+    public void dropPlayer(String user, Double gameID) throws DataAccessException {
+        String query = "UPDATE games SET ? = null WHERE gameID = ?";
+        String player = "whiteusername";
+        if (Objects.equals(getGame(gameID).blackUsername(), user)) {
+            player = "blackusername";
+        }
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var statement = conn.prepareStatement(query)) {
+                statement.setString(1, player);
+                statement.setDouble(2, gameID);
+                statement.executeUpdate();
+            }
+        }
+        catch (Exception ex) {
+            throw new DataAccessException ("Error, not authorized", ex);
+        }
     }
 
     @Override

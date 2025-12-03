@@ -127,7 +127,7 @@ public class UserService {
         try {
             game.makeMove(move.move());
             dataAccess.moveGame(game, move.gameID());
-            return new MoveResponse(game.getBoard().getAllPieces());
+            return new MoveResponse(game.getBoard().getAllPieces(), user.username());
         } catch (Exception ex) {
             throw new DataAccessException("Invalid Move");
         }
@@ -141,6 +141,24 @@ public class UserService {
         var gameData = dataAccess.getGame(game.gameID());
         var gameInstance = gameData.game();
         return new LoadResponse(gameInstance.getBoard().getAllPieces());
+    }
+
+    public LeaveResponse leave(LeaveGameData data) throws DataAccessException {
+        var checkExistingUser = dataAccess.checkAuth(data.auth());
+        if (!checkExistingUser) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        var user = dataAccess.getUser(data.auth(), 1).username();
+        try {
+            dataAccess.dropPlayer(user, data.gameID());
+        } catch (Exception ex) {
+            throw new DataAccessException("Error: could not leave");
+        }
+        return new LeaveResponse(user);
+    }
+
+    public HighlightResponse highlight(LoadGameData data) throws DataAccessException{
+
     }
 
     public void clear() throws DataAccessException {

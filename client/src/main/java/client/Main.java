@@ -20,12 +20,12 @@ public class Main {
 
             var bg = new MainBackground(serverUrl);
 
-
+            String logcase = "Logged Out";
             System.out.println("♕ 240 Chess Client\n");
             Gson gson = new Gson();
             boolean finished = false;
             while (!finished) {
-                System.out.printf(SET_BG_COLOR_DARK_GREEN + SET_TEXT_COLOR_YELLOW + "What is your command?" +
+                System.out.printf(SET_BG_COLOR_DARK_GREEN + SET_TEXT_COLOR_YELLOW + "[" + logcase + "]" + "What is your command?" +
                         SET_BG_COLOR_BLACK + "\n");
                 var scanner = new Scanner(System.in);
                 var result = scanner.next();
@@ -55,9 +55,11 @@ public class Main {
                             requestInput = gson.toJson(input);
                         }
                         bg.addUser(pathedUrl, requestInput);
+                        logcase = "Logged in";
                     }
                     case ("logout") -> {
                         bg.logoutUser();
+                        logcase = "Logged out";
                     }
                     case ("list"), ("create"), ("join") -> {
                         String requestInput = "";

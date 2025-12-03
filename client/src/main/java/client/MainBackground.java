@@ -462,48 +462,56 @@ public class MainBackground {
 
             return;
         }
-        System.out.println(cR + "What is your command?" + SET_BG_COLOR_BLACK);
+        var commandType = UserGameCommand.CommandType.LOAD;
+        var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+        webSocket.sendText(gson.toJson(command), true);
+
+        System.out.println(cR + "[GameMode] What is your command?" + SET_BG_COLOR_BLACK);
         boolean stillGoing = true;
         while (stillGoing) {
             var result = scanner.nextLine().trim();
             String[] commands = result.split("\\s+");
             switch (commands[0]) {
                 case ("resign") -> {
-                    var commandType = UserGameCommand.CommandType.RESIGN;
-                    var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    commandType = UserGameCommand.CommandType.RESIGN;
+                    command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
                     webSocket.sendText(gson.toJson(command), true);
                     stillGoing = false;
                     continue;
                 }
                 case ("leave") -> {
-                    var commandType = UserGameCommand.CommandType.LEAVE;
-                    var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    commandType = UserGameCommand.CommandType.LEAVE;
+                    command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
                     webSocket.sendText(gson.toJson(command), true);
                     stillGoing = false;
                     continue;
                 }
                 case ("highlight") -> {
                     highlightPosition = commands[1];
-                    var commandType = UserGameCommand.CommandType.HIGHLIGHT;
-                    var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    commandType = UserGameCommand.CommandType.HIGHLIGHT;
+                    command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
                     webSocket.sendText(gson.toJson(command), true);
                 }
                 case ("update") -> {
-                    var commandType = UserGameCommand.CommandType.LOAD;
-                    var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    commandType = UserGameCommand.CommandType.LOAD;
+                    command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
                     webSocket.sendText(gson.toJson(command), true);
                 }
                 case ("help") -> {
+                    var text = SET_BG_COLOR_DARK_GREEN + SET_TEXT_COLOR_YELLOW;
+                    var bG = SET_BG_COLOR_BLACK;
                     if (commands.length == 1) {
-                        System.out.println("resign : forfeits the game for you");
-                        System.out.println("leave : the cowards way out, leave without forfeiting");
-                        System.out.println("highlight <position> : highlights the possible moves at a position");
-                        System.out.println("move <move from position> <move to position> <promotion piece> : move a piece, see help(2) for details");
-                        System.out.println("help page2 : shows more details about how to input commands");
+
+                        System.out.println(text + "resign : forfeits the game for you" + bG);
+                        System.out.println(text + "leave : the cowards way out, leave without forfeiting" + bG);
+                        System.out.println(text + "highlight <position> : highlights the possible moves at a position" + bG);
+                        System.out.println(text + "move <move from position> <move to position> <promotion piece> : " +
+                                "move a piece, see help(2) for details" + bG);
+                        System.out.println(text + "help page2 : shows more details about how to input commands" + bG);
                     } else {
-                        System.out.println("<position> : type in the position using the number then the letter (ie. 2f or 6a");
-                        System.out.println("promotion : If you can promote, type in the piece's promotion in all caps (ie. QUEEN)");
-                        System.out.println("            note: leave blank if you cannot promote");
+                        System.out.println(text + "<position> : type in the position using the number then the letter (ie. 2f or 6a" + bG);
+                        System.out.println(text + "promotion : If you can promote, type in the piece's promotion in all caps (ie. QUEEN)" + bG);
+                        System.out.println(text + "            note: leave blank if you cannot promote" + bG);
                     }
                 }
                 case ("move") -> {
@@ -522,12 +530,12 @@ public class MainBackground {
                     //var input = Map.of("commandType", commandType, "start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
 
                     ChessPosition start = new ChessPosition(
-                            ((moveStart.charAt(0) - '0')),
-                            letterToNumber((moveStart.charAt(1))));
+                            ((moveStart.charAt(1) - '0')),
+                            letterToNumber((moveStart.charAt(0))));
 
                     ChessPosition end = new ChessPosition(
-                            ((moveEnd.charAt(0) - '0')),
-                            letterToNumber((moveEnd.charAt(1))));
+                            ((moveEnd.charAt(1) - '0')),
+                            letterToNumber((moveEnd.charAt(0))));
 
                     if (!promo.equals("null")) {
                         promote = ChessPiece.PieceType.valueOf(promo);
@@ -621,8 +629,11 @@ class MyWebSocketListener implements WebSocket.Listener {
                 this.thisInstance.boardPrinter(progress);
             }
             case ERROR -> {
-                var error = gson.fromJson(message, String.class);
-                System.out.println("Error: " + error);
+                JsonObject errorMessage = root.getAsJsonObject().getAsJsonObject("message");
+
+                String result = gson.fromJson(errorMessage, String.class);
+
+                System.out.println(result);
             }
             case NOTIFICATION -> {
                 String notif = gson.fromJson(message, String.class);
@@ -632,12 +643,14 @@ class MyWebSocketListener implements WebSocket.Listener {
                 Type type = new TypeToken<Map<String, ChessPiece>>() {
                 }.getType();
 
-                Map<String, ChessPiece> progress = gson.fromJson(message, type);
+                JsonObject board = root.getAsJsonObject().getAsJsonObject("board");
+
+                Map<String, ChessPiece> progress = gson.fromJson(board, type);
 
                 type = new TypeToken<Collection<ChessMove>>() {
                 }.getType();
 
-                JsonObject vMoves = root.getAsJsonObject().getAsJsonObject("valid moves");
+                JsonObject vMoves = root.getAsJsonObject().getAsJsonObject("moves");
 
                 Collection<ChessMove> moves = gson.fromJson(vMoves, type);
 

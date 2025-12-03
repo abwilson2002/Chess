@@ -115,6 +115,11 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public void dropPlayer(String username, Double gameID) throws DataAccessException {
+        return;
+    }
+
+    @Override
     public void clear() {
         userList.clear();
         gameList.clear();
