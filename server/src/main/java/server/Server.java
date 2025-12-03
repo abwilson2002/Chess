@@ -305,14 +305,14 @@ public class Server {
     }
 
     private void resign(UserGameCommand command, WsMessageContext ctx) throws IOException {
-
+        return;
     }
 
     private void highlight(UserGameCommand command, WsMessageContext ctx) throws IOException {
         try {
             var auth = command.getAuthToken();
             var targetID = Double.valueOf(command.getGameID());
-            var highRequest = new LoadGameData(targetID, auth);
+            var highRequest = new HighGameData(targetID, auth, command.getLocation());
             var service = new UserService(dataAccess);
             var highResponse = service.highlight(highRequest);
             var highMessage = new HighlightMessage(ServerMessage.ServerMessageType.LOAD_HIGHLIGHT,

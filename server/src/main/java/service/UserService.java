@@ -1,9 +1,12 @@
 package service;
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 import model.*;
 import dataaccess.*;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.util.Collection;
 import java.util.Objects;
 
 public class UserService {
@@ -157,8 +160,20 @@ public class UserService {
         return new LeaveResponse(user);
     }
 
-    public HighlightResponse highlight(LoadGameData data) throws DataAccessException{
-
+    public HighlightResponse highlight(HighGameData data) throws DataAccessException{
+        var checkExistingUser = dataAccess.checkAuth(data.auth());
+        if (!checkExistingUser) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        try {
+            var game = dataAccess.getGame(data.gameID());
+            var stringPosition = data.position();
+            var positionCheck = new ChessPosition(stringPosition.charAt(0), stringPosition.charAt(1));
+            Collection<ChessMove> moves = game.game().validMoves(positionCheck);
+            return new HighlightResponse(game.game().getBoard().getAllPieces(), moves);
+        } catch (Exception ex) {
+            throw new DataAccessException("Error: failed to highlight");
+        }
     }
 
     public void clear() throws DataAccessException {

@@ -9,7 +9,6 @@ import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
 import model.ListResponse;
-import org.eclipse.jetty.websocket.api.WebSocketListener;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
@@ -404,34 +403,34 @@ public class MainBackground {
         return encodedPiece;
     }
 
-    public Character letterToNumber(Character l) {
+    public Integer letterToNumber(Character l) {
         switch (l) {
             case ('a') -> {
-                return '1';
+                return 1;
             }
             case ('b') -> {
-                return '2';
+                return 2;
             }
             case ('c') -> {
-                return '3';
+                return 3;
             }
             case ('d') -> {
-                return '4';
+                return 4;
             }
             case ('e') -> {
-                return '5';
+                return 5;
             }
             case ('f') -> {
-                return '6';
+                return 6;
             }
             case ('g') -> {
-                return '7';
+                return 7;
             }
             case ('h') -> {
-                return '8';
+                return 8;
             }
         }
-        return ' ';
+        return 0;
     }
 
     public void gameMode(String gameID, boolean observer) {
@@ -459,16 +458,14 @@ public class MainBackground {
         if (observer) {
             System.out.println(cR + "Observing game " + gameID + SET_BG_COLOR_BLACK);
 
-
             return;
         }
         var commandType = UserGameCommand.CommandType.LOAD;
         var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
         webSocket.sendText(gson.toJson(command), true);
-
-        System.out.println(cR + "[GameMode] What is your command?" + SET_BG_COLOR_BLACK);
         boolean stillGoing = true;
         while (stillGoing) {
+            System.out.println(cR + "[GameMode] What is your command?" + SET_BG_COLOR_BLACK);
             var result = scanner.nextLine().trim();
             String[] commands = result.split("\\s+");
             switch (commands[0]) {
@@ -477,19 +474,19 @@ public class MainBackground {
                     command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
                     webSocket.sendText(gson.toJson(command), true);
                     stillGoing = false;
-                    continue;
                 }
                 case ("leave") -> {
                     commandType = UserGameCommand.CommandType.LEAVE;
                     command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
                     webSocket.sendText(gson.toJson(command), true);
                     stillGoing = false;
-                    continue;
                 }
                 case ("highlight") -> {
                     highlightPosition = commands[1];
+                    Integer firstNumber = letterToNumber(highlightPosition.charAt(0));
+                    String position = String.valueOf((firstNumber*10) + highlightPosition.charAt(1));
                     commandType = UserGameCommand.CommandType.HIGHLIGHT;
-                    command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID), position);
                     webSocket.sendText(gson.toJson(command), true);
                 }
                 case ("update") -> {
@@ -527,7 +524,6 @@ public class MainBackground {
                         System.out.println("Promotion piece not a real piece");
                         continue;
                     }
-                    //var input = Map.of("commandType", commandType, "start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
 
                     ChessPosition start = new ChessPosition(
                             ((moveStart.charAt(1) - '0')),

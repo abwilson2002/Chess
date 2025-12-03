@@ -25,7 +25,7 @@ public class Main {
             Gson gson = new Gson();
             boolean finished = false;
             while (!finished) {
-                System.out.printf(SET_BG_COLOR_DARK_GREEN + SET_TEXT_COLOR_YELLOW + "[" + logcase + "]" + "What is your command?" +
+                System.out.printf(SET_BG_COLOR_DARK_GREEN + SET_TEXT_COLOR_YELLOW + "[" + logcase + "] " + "What is your command?" +
                         SET_BG_COLOR_BLACK + "\n");
                 var scanner = new Scanner(System.in);
                 var result = scanner.next();
