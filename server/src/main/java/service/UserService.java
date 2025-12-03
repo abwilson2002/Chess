@@ -133,6 +133,16 @@ public class UserService {
         }
     }
 
+    public LoadResponse load(LoadGameData game) throws DataAccessException {
+        var checkExistingUser = dataAccess.checkAuth(game.auth());
+        if (!checkExistingUser) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        var gameData = dataAccess.getGame(game.gameID());
+        var gameInstance = gameData.game();
+        return new LoadResponse(gameInstance.getBoard().getAllPieces());
+    }
+
     public void clear() throws DataAccessException {
         try {
             dataAccess.clear();

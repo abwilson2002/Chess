@@ -22,10 +22,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
 
 public class MainBackground {
@@ -37,6 +34,7 @@ public class MainBackground {
     private final String serverUrl;
     boolean loggedIn = false;
     private String playerColor = null;
+    private String highlightPosition;
 
     public MainBackground(String serverName) throws Exception {
 
@@ -273,7 +271,7 @@ public class MainBackground {
         }
     }
 
-    private void boardPrinter(Map<String, ChessPiece> board) {
+    public void boardPrinter(Map<String, ChessPiece> board) {
         var bG = SET_BG_COLOR_LIGHT_GREY;
         int startLetter = 1;
         int endLetter = 9;
@@ -302,6 +300,56 @@ public class MainBackground {
                     System.out.printf(SET_BG_COLOR_WHITE + pieceName(place, board));
                 } else {
                     System.out.printf(SET_BG_COLOR_BLACK + pieceName(place, board));
+                }
+            }
+            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + SET_BG_COLOR_BLACK + "\n");
+        }
+        System.out.println(SET_TEXT_COLOR_BLACK + letters);
+    }
+
+    public void boardPrinterHighlight(Map<String, ChessPiece> board, Collection<ChessMove> validMoves) {
+        var bG = SET_BG_COLOR_LIGHT_GREY;
+        var bWV = SET_BG_COLOR_WHITE; //This variable stands for background White Variable
+        var bBV = SET_BG_COLOR_BLACK;
+        Collection<ChessPosition> positions = new HashSet<>();
+        for (ChessMove move : validMoves) {
+            positions.add(move.getEndPosition());
+        }
+        int startLetter = 1;
+        int endLetter = 9;
+        int startNumber = 8;
+        int endNumber = 0;
+        int directionLetter = 1;
+        int directionNumber = -1;
+        boolean white = true;
+        String letters = SET_BG_COLOR_LIGHT_GREY + "     a   b  c   d   e  f   g   h   " + SET_BG_COLOR_BLACK;
+        if (Objects.equals(playerColor, "BLACK")) {
+            startLetter = 8;
+            endLetter = 0;
+            startNumber = 1;
+            endNumber = 9;
+            directionLetter = -1;
+            directionNumber = 1;
+            white = false;
+            letters = "  h   g  f   e   d   c  b   a   " + SET_BG_COLOR_BLACK;
+        }
+        System.out.println(SET_TEXT_COLOR_BLACK + letters);
+        for (int i = startNumber; (white ? (i > endNumber) : (i < endNumber)); i += directionNumber) {
+            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " ");
+            for (int j = startLetter; (white ? (j < endLetter) : (j > endLetter)); j += directionLetter) {
+                var place = new ChessPosition(i, j);
+                if (tileColor(i, j)) {
+                    if (positions.contains(place)) {
+                        bWV = SET_BG_COLOR_YELLOW;
+                    }
+                    System.out.printf(bWV + pieceName(place, board));
+                    bWV = SET_BG_COLOR_WHITE;
+                } else {
+                    if (positions.contains(place)) {
+                        bBV = SET_BG_COLOR_RED;
+                    }
+                    System.out.printf(bBV + pieceName(place, board));
+                    bBV = SET_BG_COLOR_BLACK;
                 }
             }
             System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + SET_BG_COLOR_BLACK + "\n");
@@ -395,7 +443,7 @@ public class MainBackground {
 
             webSocket = HttpClient.newHttpClient().newWebSocketBuilder()
                     .header("Authorization", userAuth)
-                    .buildAsync(URI.create(wsUrl), new WebSocketListener())
+                    .buildAsync(URI.create(wsUrl), new MyWebSocketListener(this))
                     .join();
 
             var commandType = UserGameCommand.CommandType.CONNECT;
@@ -435,10 +483,15 @@ public class MainBackground {
                     continue;
                 }
                 case ("highlight") -> {
-
+                    highlightPosition = commands[1];
+                    var commandType = UserGameCommand.CommandType.HIGHLIGHT;
+                    var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    webSocket.sendText(gson.toJson(command), true);
                 }
                 case ("update") -> {
-
+                    var commandType = UserGameCommand.CommandType.LOAD;
+                    var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    webSocket.sendText(gson.toJson(command), true);
                 }
                 case ("help") -> {
                     if (commands.length == 1) {
@@ -458,11 +511,15 @@ public class MainBackground {
                     var moveEnd = commands[2];
                     String promo = "null";
                     ChessPiece.PieceType promote = null;
-                    if (commands.length > 3) {
-                        promo = commands[3];
+                    try {
+                        if (commands.length > 3) {
+                            promo = commands[3];
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("Promotion piece not a real piece");
+                        continue;
                     }
-                    var commandType = UserGameCommand.CommandType.MAKE_MOVE;
-                    var input = Map.of("commandType", commandType, "start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
+                    //var input = Map.of("commandType", commandType, "start", moveStart, "end", moveEnd, "promote", promo, "gameID", gameID);
 
                     ChessPosition start = new ChessPosition(
                             ((moveStart.charAt(0) - '0')),
@@ -520,53 +577,81 @@ public class MainBackground {
                     }*/
                 }
             }
-            try {
-                webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Closing").join();
-            } catch (Exception ex) {
-                return;
+        }
+        try {
+            webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Closing").join();
+        } catch (Exception ex) {
+            return;
+        }
+    }
+}
+
+class MyWebSocketListener implements WebSocket.Listener {
+
+    private final MainBackground thisInstance;
+
+    public MyWebSocketListener(MainBackground instance) {
+        thisInstance = instance;
+    }
+
+    @Override
+    public void onOpen(WebSocket webSocket) {
+        WebSocket.Listener.super.onOpen(webSocket);
+    }
+
+    public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+        String message = data.toString();
+        var gson = new Gson();
+
+        JsonElement root = JsonParser.parseString(message);
+
+        JsonObject commandType = root.getAsJsonObject().getAsJsonObject("type");
+
+        ServerMessage command = gson.fromJson(commandType, ServerMessage.class);
+
+        switch (command.getServerMessageType()) {
+            case LOAD_GAME -> {
+                Type type = new TypeToken<Map<String, ChessPiece>>() {
+                }.getType();
+
+                JsonObject allPiecesMap = root.getAsJsonObject().getAsJsonObject("board");
+
+                Map<String, ChessPiece> progress = gson.fromJson(allPiecesMap, type);
+
+                this.thisInstance.boardPrinter(progress);
+            }
+            case ERROR -> {
+                var error = gson.fromJson(message, String.class);
+                System.out.println("Error: " + error);
+            }
+            case NOTIFICATION -> {
+                String notif = gson.fromJson(message, String.class);
+                System.out.println(notif);
+            }
+            case LOAD_HIGHLIGHT -> {
+                Type type = new TypeToken<Map<String, ChessPiece>>() {
+                }.getType();
+
+                Map<String, ChessPiece> progress = gson.fromJson(message, type);
+
+                type = new TypeToken<Collection<ChessMove>>() {
+                }.getType();
+
+                JsonObject vMoves = root.getAsJsonObject().getAsJsonObject("valid moves");
+
+                Collection<ChessMove> moves = gson.fromJson(vMoves, type);
+
+                this.thisInstance.boardPrinterHighlight(progress, moves);
             }
         }
+        return WebSocket.Listener.super.onText(webSocket, data, last);
+    }
 
-        class WebSocketListener implements WebSocket.Listener {
-            @Override
-            public void onOpen(WebSocket webSocket) {
-                WebSocket.Listener.super.onOpen(webSocket);
-            }
+    public void onClose(WebSocket webSocket) {
+        WebSocket.Listener.super.onClose(webSocket, 200, "Done");
+    }
 
-            public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-                String message = data.toString();
-                var gson = new Gson();
-
-                ServerMessage command = gson.fromJson(message, ServerMessage.class);
-
-                switch (command.getServerMessageType()) {
-                    case LOAD_GAME -> {
-                        Type type = new TypeToken<Map<String, ChessPiece>>() {
-                        }.getType();
-
-                        Map<String, ChessPiece> progress = gson.fromJson(message, type);
-
-                        boardPrinter(progress);
-                    }
-                    case ERROR -> {
-                        var error = gson.fromJson(message, String.class);
-                        System.out.println("Error: " + error);
-                    }
-                    case NOTIFICATION -> {
-                        String notif = gson.fromJson(message, String.class);
-                        System.out.println(notif);
-                    }
-                }
-                return WebSocket.Listener.super.onText(webSocket, data, last);
-            }
-
-            public void onClose(WebSocket webSocket) {
-                WebSocket.Listener.super.onClose(webSocket, 200, "Done");
-            }
-
-            public void onError(WebSocket webSocket, Exception ex) {
-                WebSocket.Listener.super.onError(webSocket, ex);
-            }
-        }
+    public void onError(WebSocket webSocket, Exception ex) {
+        WebSocket.Listener.super.onError(webSocket, ex);
     }
 }

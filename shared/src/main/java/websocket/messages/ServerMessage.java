@@ -13,6 +13,7 @@ public class ServerMessage {
 
     public enum ServerMessageType {
         LOAD_GAME,
+        LOAD_HIGHLIGHT,
         ERROR,
         NOTIFICATION
     }

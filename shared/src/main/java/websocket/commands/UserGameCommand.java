@@ -20,6 +20,8 @@ public class UserGameCommand {
 
     private ChessMove move = null;
 
+    private String location = "";
+
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
         this.commandType = commandType;
         this.authToken = authToken;
@@ -33,11 +35,20 @@ public class UserGameCommand {
         this.move = mve;
     }
 
+    public UserGameCommand(CommandType commandType, String authToken, Integer gameID, String location) {
+        this.commandType = commandType;
+        this.authToken = authToken;
+        this.gameID = gameID;
+        this.location = location;
+    }
+
     public enum CommandType {
         CONNECT,
         MAKE_MOVE,
         LEAVE,
-        RESIGN
+        RESIGN,
+        LOAD,
+        HIGHLIGHT
     }
 
     public CommandType getCommandType() {
@@ -56,6 +67,10 @@ public class UserGameCommand {
         return move;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -67,11 +82,12 @@ public class UserGameCommand {
         return getCommandType() == that.getCommandType() &&
                 Objects.equals(getAuthToken(), that.getAuthToken()) &&
                 Objects.equals(getGameID(), that.getGameID()) &&
-                Objects.equals(getMove(), that.getMove());
+                Objects.equals(getMove(), that.getMove()) &&
+                Objects.equals(getLocation(), that.getLocation());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getCommandType(), getAuthToken(), getGameID(), getMove());
+        return Objects.hash(getCommandType(), getAuthToken(), getGameID(), getMove(), getLocation());
     }
 }

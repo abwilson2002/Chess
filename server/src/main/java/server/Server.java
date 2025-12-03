@@ -75,6 +75,12 @@ public class Server {
                     case RESIGN -> {
                         gameConnections.removeConnection(ctx.session);
                     }
+                    case LOAD -> {
+                        load(command, ctx);
+                    }
+                    case HIGHLIGHT -> {
+
+                    }
                 }
             });
             ws.onClose(_ -> System.out.println("Disconnected"));
@@ -233,7 +239,6 @@ public class Server {
 
     private void move(UserGameCommand command, WsMessageContext ctx) throws IOException {
         try {
-            var serializer = new Gson();
             var auth = command.getAuthToken();
             var targetID = Double.valueOf(command.getGameID());
             var move = command.getMove();
@@ -245,13 +250,31 @@ public class Server {
             var gson = new Gson();
             var jsonMessage = gson.toJson(loadMessage);
             for (var session : gameConnections.getAllSessions(targetID)) {
-                session.getRemote().sendString((gson.toJson(jsonMessage)));
+                session.getRemote().sendString(jsonMessage);
             }
 
         } catch (Exception ex) {
             var errorMessage = "Error: " + ex.getMessage();
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(errorMessage));
+        }
+    }
+
+    private void load(UserGameCommand command, WsMessageContext ctx) {
+        try {
+            var auth = command.getAuthToken();
+            var targetID = Double.valueOf(command.getGameID());
+            var loadRequest = new LoadGameData(targetID, auth);
+            var service = new UserService(dataAccess);
+            var loadResponse = service.load(loadRequest);
+            var loadMessage = new LoadGameMessage(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME), loadResponse.board());
+            var gson = new Gson();
+            var message = gson.toJson(loadMessage);
+            ctx.session.getRemote().sendString(message);
+        } catch (Exception ex) {
+            var errorMessage = "Error: " + ex.getMessage();
+            var gson = new Gson();
+            System.out.println(errorMessage);
         }
     }
 
