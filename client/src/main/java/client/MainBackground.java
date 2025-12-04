@@ -117,7 +117,7 @@ public class MainBackground {
         }
     }
 
-    public void gameAction(String result, String requestInput, String gameID) {
+    public void gameAction(String result, String requestInput, String gameID, String playerColor) {
         var gson = new Gson();
         if (!loggedIn) {
             System.out.println("Please log in or register before continuing" +
@@ -484,7 +484,7 @@ public class MainBackground {
                 case ("highlight") -> {
                     highlightPosition = commands[1];
                     Integer firstNumber = letterToNumber(highlightPosition.charAt(0));
-                    String position = String.valueOf((firstNumber*10) + highlightPosition.charAt(1));
+                    String position = String.valueOf((firstNumber*10) + (highlightPosition.charAt(1) - '0'));
                     commandType = UserGameCommand.CommandType.HIGHLIGHT;
                     command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID), position);
                     webSocket.sendText(gson.toJson(command), true);
@@ -640,7 +640,7 @@ class MyWebSocketListener implements WebSocket.Listener {
                 type = new TypeToken<Collection<ChessMove>>() {
                 }.getType();
 
-                JsonObject vMoves = root.getAsJsonObject().getAsJsonObject("moves");
+                var vMoves = root.getAsJsonObject().get("moves");
 
                 Collection<ChessMove> moves = gson.fromJson(vMoves, type);
 

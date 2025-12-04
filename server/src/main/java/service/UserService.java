@@ -168,7 +168,7 @@ public class UserService {
         try {
             var game = dataAccess.getGame(data.gameID());
             var stringPosition = data.position();
-            var positionCheck = new ChessPosition(stringPosition.charAt(0), stringPosition.charAt(1));
+            var positionCheck = new ChessPosition((stringPosition.charAt(1) - '0'), (stringPosition.charAt(0) - '0'));
             Collection<ChessMove> moves = game.game().validMoves(positionCheck);
             return new HighlightResponse(game.game().getBoard().getAllPieces(), moves);
         } catch (Exception ex) {

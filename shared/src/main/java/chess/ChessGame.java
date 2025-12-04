@@ -114,8 +114,8 @@ public class ChessGame {
                 king = temp.blackKing;
                 kingPosition = temp.blackKingPos;
             }
-            temp.board.getAllPieces().put(board.positionToString(move.getEndPosition()), tempPiece);
-            temp.board.getAllPieces().remove(board.positionToString(move.getStartPosition()));
+            temp.board.getAllPieces().put(ChessBoard.positionToString(move.getEndPosition()), tempPiece);
+            temp.board.getAllPieces().remove(ChessBoard.positionToString(move.getStartPosition()));
             if (tempPiece.getPieceType() == ChessPiece.PieceType.KING) {
                 kingPosition = move.getEndPosition();
                 king = tempPiece;
@@ -181,10 +181,10 @@ public class ChessGame {
                     if (moveDistance == 2) {
                         rookSpot = 1;
                     }
-                    ChessPiece movingRook = board.getAllPieces().get(board.positionToString(new ChessPosition(movingRow, rookSpot)));
-                    board.getAllPieces().put(board.positionToString(new ChessPosition(movingRow, (end.getColumn() + (moveDistance / 2)))),
+                    ChessPiece movingRook = board.getAllPieces().get(ChessBoard.positionToString(new ChessPosition(movingRow, rookSpot)));
+                    board.getAllPieces().put(ChessBoard.positionToString(new ChessPosition(movingRow, (end.getColumn() + (moveDistance / 2)))),
                             movingRook);
-                    board.getAllPieces().remove(board.positionToString(new ChessPosition(movingRow, rookSpot)));
+                    board.getAllPieces().remove(ChessBoard.positionToString(new ChessPosition(movingRow, rookSpot)));
                     movingRook.moved = true;
                 }
             }
@@ -194,7 +194,7 @@ public class ChessGame {
                         & board.blackPawnDoubleMove) || (movingPiece.faction == TeamColor.BLACK
                         & board.whitePawnDoubleMove)) {
                     if (end.getColumn() == board.enPassantPosition.getColumn() & (end.getRow() == 3 || end.getRow() == 6)) {
-                        board.getAllPieces().remove(board.positionToString(board.enPassantPosition));
+                        board.getAllPieces().remove(ChessBoard.positionToString(board.enPassantPosition));
                     }
                 }
                 if (abs((start.getRow()) - (end.getRow())) == 2) {
@@ -214,8 +214,8 @@ public class ChessGame {
             }
         }
         movingPiece.moved = true;
-        board.getAllPieces().put(board.positionToString(end), movingPiece);
-        board.getAllPieces().remove(board.positionToString(move.getStartPosition()));
+        board.getAllPieces().put(ChessBoard.positionToString(end), movingPiece);
+        board.getAllPieces().remove(ChessBoard.positionToString(move.getStartPosition()));
         getKingPosition();
         isInCheck(TeamColor.WHITE);
         isInCheck(TeamColor.BLACK);

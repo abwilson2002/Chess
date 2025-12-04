@@ -258,7 +258,7 @@ public class Server {
                 session.getRemote().sendString(jsonNotif);
             }
         } catch (Exception ex) {
-            var errorMessage = "Error: " + ex.getMessage();
+            var errorMessage = ex.getMessage();
             var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));
@@ -277,7 +277,7 @@ public class Server {
             var message = gson.toJson(loadMessage);
             ctx.session.getRemote().sendString(message);
         } catch (Exception ex) {
-            var errorMessage = "Error: " + ex.getMessage();
+            var errorMessage = ex.getMessage();
             var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));
@@ -297,7 +297,7 @@ public class Server {
             var message = gson.toJson(leaveMessage);
             ctx.session.getRemote().sendString(message);
         } catch (Exception ex) {
-            var errorMessage = "Error: " + ex.getMessage();
+            var errorMessage = ex.getMessage();
             var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));
@@ -321,7 +321,7 @@ public class Server {
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(highMessage));
         } catch (Exception ex) {
-            var errorMessage = "Error: " + ex.getMessage();
+            var errorMessage = ex.getMessage();
             var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));

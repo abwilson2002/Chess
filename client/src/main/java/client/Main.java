@@ -64,6 +64,7 @@ public class Main {
                     case ("list"), ("create"), ("join") -> {
                         String requestInput = "";
                         String gameID = "";
+                        String playerColor = "";
                         if (result.equals("create")) {
                             String gameName = scanner.next();
 
@@ -71,12 +72,12 @@ public class Main {
                             requestInput = gson.toJson(input);
                         } else if (result.equals("join")) {
                             gameID = scanner.next();
-                            String playerColor = scanner.next();
+                            playerColor = scanner.next();
 
                             var input = Map.of("username", bg.user, "gameID", gameID, "playerColor", playerColor);
                             requestInput = gson.toJson(input);
                         }
-                        bg.gameAction(result, requestInput, gameID);
+                        bg.gameAction(result, requestInput, gameID, playerColor);
                     }
                     case ("help") -> {
                         bg.help();
