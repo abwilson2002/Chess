@@ -119,6 +119,9 @@ public class UserService {
         var user = dataAccess.getUser(auth, 1);
         var gameData = dataAccess.getGame(move.gameID());
         var game = gameData.game();
+        if (game.gameOver) {
+            throw new DataAccessException("Game is over, no moves allowed");
+        }
         boolean whitePlayer = !Objects.equals(gameData.blackUsername(), user.username());
         if (((game.getTeamTurn() == ChessGame.TeamColor.WHITE) & !whitePlayer) || (game.getTeamTurn() == ChessGame.TeamColor.BLACK) & whitePlayer) {
             throw new DataAccessException("Not your turn");
@@ -130,7 +133,18 @@ public class UserService {
         try {
             game.makeMove(move.move());
             dataAccess.moveGame(game, move.gameID());
-            return new MoveResponse(game.getBoard().getAllPieces(), user.username());
+            String gameState = "";
+            ChessGame.TeamColor enemyColor = (whitePlayer) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+            if (game.isInStalemate(enemyColor)) {
+                gameState = "Stalemate";
+            } else if (game.isInCheck(enemyColor)) {
+                if (game.isInCheckmate(enemyColor)) {
+                    gameState = "Checkmate";
+                } else {
+                    gameState = "Check";
+                }
+            }
+            return new MoveResponse(game.getBoard().getAllPieces(), user.username(), gameState);
         } catch (Exception ex) {
             throw new DataAccessException("Invalid Move");
         }

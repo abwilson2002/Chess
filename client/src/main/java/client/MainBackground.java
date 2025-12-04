@@ -446,7 +446,17 @@ public class MainBackground {
                     .join();
 
             var commandType = UserGameCommand.CommandType.CONNECT;
-            var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+            String playerColor;
+            if (observer) {
+                playerColor = "an observer";
+            } else {
+                if (Objects.equals(this.playerColor, "WHITE")) {
+                    playerColor = "white";
+                } else {
+                    playerColor = "black";
+                }
+            }
+            var command = new UserGameCommand(commandType, user, Integer.parseInt(gameID), playerColor);
             var startGame = gson.toJson(command);
 
             webSocket.sendText(startGame, true);
@@ -627,7 +637,7 @@ class MyWebSocketListener implements WebSocket.Listener {
             case ERROR, NOTIFICATION -> {
                 String message = root.getAsJsonObject().get("message").getAsString();
 
-                System.out.println(message);
+                System.out.println(SET_BG_COLOR_BLACK + SET_TEXT_COLOR_YELLOW + message);
             }
             case LOAD_HIGHLIGHT -> {
                 Type type = new TypeToken<Map<String, ChessPiece>>() {

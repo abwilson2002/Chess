@@ -21,7 +21,7 @@ public class ChessGame {
     transient ChessPosition blackKingPos;
     boolean whiteInCheck = false;
     boolean blackInCheck = false;
-    boolean gameOver = false;
+    public boolean gameOver = false;
 
     @Override
     public boolean equals(Object o) {
@@ -166,10 +166,12 @@ public class ChessGame {
         ChessPosition start = move.getStartPosition();
         ChessPosition end = move.getEndPosition();
         TeamColor side = ChessGame.TeamColor.WHITE;
+        TeamColor enemy = ChessGame.TeamColor.BLACK;
         int movingRow = 1;
         if (movingPiece.getTeamColor() == TeamColor.BLACK) {
             movingRow = 8;
             side = ChessGame.TeamColor.BLACK;
+            enemy = ChessGame.TeamColor.WHITE;
         }
 
         //Castling Moves
@@ -217,8 +219,12 @@ public class ChessGame {
         board.getAllPieces().put(ChessBoard.positionToString(end), movingPiece);
         board.getAllPieces().remove(ChessBoard.positionToString(move.getStartPosition()));
         getKingPosition();
-        isInCheck(TeamColor.WHITE);
-        isInCheck(TeamColor.BLACK);
+        if(isInCheck(enemy)) {
+            if (isInCheckmate(enemy)) {
+                gameOver = true;
+            }
+        }
+        isInStalemate(enemy);
         isWhiteTurn = !isWhiteTurn;
     }
 

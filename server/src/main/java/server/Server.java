@@ -244,7 +244,6 @@ public class Server {
             var auth = command.getAuthToken();
             var targetID = Double.valueOf(command.getGameID());
             var move = command.getMove();
-
             var moveRequest = new MoveData(targetID, move);
             var service = new UserService(dataAccess);
             var moveResponse = service.move(moveRequest, auth);
@@ -256,6 +255,13 @@ public class Server {
             for (var session : gameConnections.getAllSessions(targetID)) {
                 session.getRemote().sendString(jsonMessage);
                 session.getRemote().sendString(jsonNotif);
+            }
+            if (!Objects.equals(moveResponse.gameState(), "")) {
+                var gameUpdate = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION), (moveResponse.user() + " has made a move"));
+                var jsonGameState = gson.toJson(gameUpdate);
+                for (var session : gameConnections.getAllSessions(targetID)) {
+                    session.getRemote().sendString(jsonGameState);
+                }
             }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
@@ -320,6 +326,23 @@ public class Server {
                     highResponse.moves());
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(highMessage));
+        } catch (Exception ex) {
+            var errorMessage = ex.getMessage();
+            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
+            var gson = new Gson();
+            ctx.session.getRemote().sendString(gson.toJson(output));
+        }
+    }
+
+    private void connect(UserGameCommand command, WsMessageContext ctx) throws IOException {
+        try {
+            String username = command.getAuthToken();
+            String playerColor = command.getLocation();
+            String connectMessage = username + " has connected to the game as " + playerColor;
+            var gson = new Gson();
+            for (var session : gameConnections.getAllSessions(command.getGameID())) {
+                session.getRemote().sendString(gson.toJson(connectMessage));
+            }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
             var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
