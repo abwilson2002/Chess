@@ -604,10 +604,10 @@ class MyWebSocketListener implements WebSocket.Listener {
     }
 
     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-        String message = data.toString();
+        String report = data.toString();
         var gson = new Gson();
 
-        JsonElement root = JsonParser.parseString(message);
+        JsonElement root = JsonParser.parseString(report);
 
         JsonObject commandType = root.getAsJsonObject().getAsJsonObject("type");
 
@@ -624,16 +624,10 @@ class MyWebSocketListener implements WebSocket.Listener {
 
                 this.thisInstance.boardPrinter(progress);
             }
-            case ERROR -> {
-                JsonObject errorMessage = root.getAsJsonObject().getAsJsonObject("message");
+            case ERROR, NOTIFICATION -> {
+                String message = root.getAsJsonObject().get("message").getAsString();
 
-                String result = gson.fromJson(errorMessage, String.class);
-
-                System.out.println(result);
-            }
-            case NOTIFICATION -> {
-                String notif = gson.fromJson(message, String.class);
-                System.out.println(notif);
+                System.out.println(message);
             }
             case LOAD_HIGHLIGHT -> {
                 Type type = new TypeToken<Map<String, ChessPiece>>() {

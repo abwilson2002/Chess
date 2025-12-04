@@ -251,7 +251,7 @@ public class Server {
             var loadMessage = new LoadGameMessage(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME), moveResponse.board());
             var gson = new Gson();
             var jsonMessage = gson.toJson(loadMessage);
-            var moveMade = Map.of("type", ServerMessage.ServerMessageType.NOTIFICATION, "message", moveResponse.user());
+            var moveMade = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION), (moveResponse.user() + " has made a move"));
             var jsonNotif = gson.toJson(moveMade);
             for (var session : gameConnections.getAllSessions(targetID)) {
                 session.getRemote().sendString(jsonMessage);
@@ -259,7 +259,7 @@ public class Server {
             }
         } catch (Exception ex) {
             var errorMessage = "Error: " + ex.getMessage();
-            var output = Map.of("type", ServerMessage.ServerMessageType.ERROR, "message", errorMessage);
+            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));
         }
@@ -278,7 +278,7 @@ public class Server {
             ctx.session.getRemote().sendString(message);
         } catch (Exception ex) {
             var errorMessage = "Error: " + ex.getMessage();
-            var output = Map.of("type", ServerMessage.ServerMessageType.ERROR, "message", errorMessage);
+            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));
         }
@@ -292,13 +292,13 @@ public class Server {
             var service = new UserService(dataAccess);
             var leaveResponse = service.leave(leaveRequest);
             var leaveString = leaveResponse.user() + " has taken the cowards way out and left without resigning";
-            var leaveMessage = Map.of("type", ServerMessage.ServerMessageType.NOTIFICATION, "message", leaveString);
+            var leaveMessage = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION), leaveString);
             var gson = new Gson();
             var message = gson.toJson(leaveMessage);
             ctx.session.getRemote().sendString(message);
         } catch (Exception ex) {
             var errorMessage = "Error: " + ex.getMessage();
-            var output = Map.of("type", ServerMessage.ServerMessageType.ERROR, "message", errorMessage);
+            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));
         }
@@ -315,14 +315,14 @@ public class Server {
             var highRequest = new HighGameData(targetID, auth, command.getLocation());
             var service = new UserService(dataAccess);
             var highResponse = service.highlight(highRequest);
-            var highMessage = new HighlightMessage(ServerMessage.ServerMessageType.LOAD_HIGHLIGHT,
+            var highMessage = new HighlightMessage(new ServerMessage(ServerMessage.ServerMessageType.LOAD_HIGHLIGHT),
                     highResponse.allPieces(),
                     highResponse.moves());
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(highMessage));
         } catch (Exception ex) {
             var errorMessage = "Error: " + ex.getMessage();
-            var output = Map.of("type", ServerMessage.ServerMessageType.ERROR, "message", errorMessage);
+            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));
         }
