@@ -467,7 +467,39 @@ public class MainBackground {
 
         if (observer) {
             System.out.println(cR + "Observing game " + gameID + SET_BG_COLOR_BLACK);
-
+            boolean stillWatching = true;
+            while (stillWatching) {
+                var baseCommand = scanner.nextLine().trim();
+                String[] command = baseCommand.split("\\s+");
+                switch(command[0]) {
+                    case("help") -> {
+                        var text = SET_TEXT_COLOR_YELLOW + SET_BG_COLOR_DARK_GREEN;
+                        var bG = SET_BG_COLOR_BLACK;
+                        System.out.println(text + "leave : stop observing the game" + bG);
+                        System.out.println(text + "highlight <position> : highlights the possible moves at a position" + bG);
+                        System.out.println(text + "update : updates the board to the most current state" + bG);
+                    }
+                    case("update") -> {
+                        var commandType = UserGameCommand.CommandType.LOAD;
+                        var uCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                        webSocket.sendText(gson.toJson(uCommand), true);
+                    }
+                    case("leave") -> {
+                        var commandType = UserGameCommand.CommandType.LEAVE;
+                        var lCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                        webSocket.sendText(gson.toJson(lCommand), true);
+                        stillWatching = false;
+                    }
+                    case("highlight") -> {
+                        highlightPosition = command[1];
+                        Integer firstNumber = letterToNumber(highlightPosition.charAt(0));
+                        String position = String.valueOf((firstNumber*10) + (highlightPosition.charAt(1) - '0'));
+                        var commandType = UserGameCommand.CommandType.HIGHLIGHT;
+                        var hCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID), position);
+                        webSocket.sendText(gson.toJson(hCommand), true);
+                    }
+                }
+            }
             return;
         }
         var commandType = UserGameCommand.CommandType.LOAD;
@@ -480,6 +512,11 @@ public class MainBackground {
             String[] commands = result.split("\\s+");
             switch (commands[0]) {
                 case ("resign") -> {
+                    System.out.println("Are you sure that you want to resign? (Y or N)");
+                    var answer = scanner.next();
+                    if (!Objects.equals(answer, "Y")) {
+                        continue;
+                    }
                     commandType = UserGameCommand.CommandType.RESIGN;
                     command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
                     webSocket.sendText(gson.toJson(command), true);
@@ -508,7 +545,7 @@ public class MainBackground {
                     var text = SET_BG_COLOR_DARK_GREEN + SET_TEXT_COLOR_YELLOW;
                     var bG = SET_BG_COLOR_BLACK;
                     if (commands.length == 1) {
-
+                        System.out.println(text + "update : updates the board to the most current state" + bG);
                         System.out.println(text + "resign : forfeits the game for you" + bG);
                         System.out.println(text + "leave : the cowards way out, leave without forfeiting" + bG);
                         System.out.println(text + "highlight <position> : highlights the possible moves at a position" + bG);

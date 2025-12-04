@@ -161,17 +161,27 @@ public class UserService {
     }
 
     public LeaveResponse leave(LeaveGameData data) throws DataAccessException {
+        if (Objects.equals(data.auth(), "observer")) {
+            return new LeaveResponse("observer", "An observer has left the game");
+        }
         var checkExistingUser = dataAccess.checkAuth(data.auth());
         if (!checkExistingUser) {
             throw new DataAccessException("Error: unauthorized");
         }
         var user = dataAccess.getUser(data.auth(), 1).username();
+        var message = "";
         try {
             dataAccess.dropPlayer(user, data.gameID());
+            var game = dataAccess.getGame(data.gameID()).game();
+            if (game.gameOver) {
+                message = user + " has left the game";
+            } else {
+                message = user + " has taken the cowards way out and left";
+            }
         } catch (Exception ex) {
             throw new DataAccessException("Error: could not leave");
         }
-        return new LeaveResponse(user);
+        return new LeaveResponse(user, message);
     }
 
     public HighlightResponse highlight(HighGameData data) throws DataAccessException{
@@ -188,6 +198,20 @@ public class UserService {
         } catch (Exception ex) {
             throw new DataAccessException("Error: failed to highlight");
         }
+    }
+
+    public void resign(String auth, Double gameID) throws DataAccessException {
+        var checkExistingUser = dataAccess.checkAuth(auth);
+        if (!checkExistingUser) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        var user = dataAccess.getUser(auth, 1);
+        var game = dataAccess.getGame(gameID);
+        if (!Objects.equals(user.username(), game.whiteUsername()) || !Objects.equals(user.username(), game.blackUsername())) {
+            throw new DataAccessException("Error: not allowed to resign if you are not a player");
+        }
+        game.game().gameOver = true;
+        dataAccess.moveGame(game.game(), gameID);
     }
 
     public void clear() throws DataAccessException {

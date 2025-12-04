@@ -1,12 +1,8 @@
 package server;
 
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
 import com.google.gson.Gson;
 import io.javalin.*;
 import io.javalin.http.Context;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
@@ -297,7 +293,7 @@ public class Server {
             var leaveRequest = new LeaveGameData(targetID, auth);
             var service = new UserService(dataAccess);
             var leaveResponse = service.leave(leaveRequest);
-            var leaveString = leaveResponse.user() + " has taken the cowards way out and left without resigning";
+            var leaveString = leaveResponse.message();
             var leaveMessage = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION), leaveString);
             var gson = new Gson();
             var message = gson.toJson(leaveMessage);
@@ -308,10 +304,6 @@ public class Server {
             var gson = new Gson();
             ctx.session.getRemote().sendString(gson.toJson(output));
         }
-    }
-
-    private void resign(UserGameCommand command, WsMessageContext ctx) throws IOException {
-        return;
     }
 
     private void highlight(UserGameCommand command, WsMessageContext ctx) throws IOException {
@@ -342,6 +334,25 @@ public class Server {
             var gson = new Gson();
             for (var session : gameConnections.getAllSessions(command.getGameID())) {
                 session.getRemote().sendString(gson.toJson(connectMessage));
+            }
+        } catch (Exception ex) {
+            var errorMessage = ex.getMessage();
+            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
+            var gson = new Gson();
+            ctx.session.getRemote().sendString(gson.toJson(output));
+        }
+    }
+
+    private void resign(UserGameCommand command, WsMessageContext ctx) throws IOException {
+        try {
+            String auth = command.getAuthToken();
+            String username = command.getLocation();
+            String resignMessage = username + " has resigned";
+            var service = new UserService(dataAccess);
+            service.resign(auth, command.getGameID().doubleValue());
+            var gson = new Gson();
+            for (var session : gameConnections.getAllSessions(command.getGameID())) {
+                session.getRemote().sendString(gson.toJson(resignMessage));
             }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
