@@ -156,7 +156,7 @@ public class ChessPiece implements Cloneable {
         Set<ChessMove> possibleMoves = new HashSet<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
-
+        possibleMoves.add(new ChessMove(myPosition, myPosition, null));
         if (type == PieceType.PAWN) {
             possibleMoves = pawnMoves(board, myPosition, possibleMoves);
         } else if (type == PieceType.ROOK) {

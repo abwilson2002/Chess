@@ -252,7 +252,8 @@ public class Server {
         var loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, moveResponse.board());
         var gson = new Gson();
         var jsonMessage = gson.toJson(loadMessage);
-        var moveMade = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, (moveResponse.user() + " has made a move"), null);
+        var moveMade = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION,
+                (moveResponse.user() + " has made a move from" + command.getLocation()), null);
         var jsonNotif = gson.toJson(moveMade);
         for (var session : gameConnections.getAllSessions(targetID)) {
             try {
@@ -271,7 +272,7 @@ public class Server {
         }
         if (!Objects.equals(moveResponse.gameState(), "")) {
             var gameUpdate = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION,
-                    (moveResponse.gameState() + " has made a move"), null);
+                    (moveResponse.gameState()), null);
             var jsonGameState = gson.toJson(gameUpdate);
             for (var session : gameConnections.getAllSessions(targetID)) {
                 try {

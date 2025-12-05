@@ -51,7 +51,13 @@ public class MainHelper {
 
         Integer targetID = Integer.parseInt(gameID);
 
-        UserGameCommand moveCommand = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, userAuth, targetID, move);
+        String moveString = commands[1] + "to" + commands[2];
+
+        if (promote != null) {
+            moveString += " and promoted to " + commands[3];
+        }
+
+        UserGameCommand moveCommand = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, userAuth, targetID, move, moveString);
 
         var moveInput = gson.toJson(moveCommand);
 
