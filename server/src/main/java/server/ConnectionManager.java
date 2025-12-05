@@ -18,6 +18,10 @@ public class ConnectionManager {
         connections.put(gameID, gameSessions);
     }
 
+    public boolean anyConnections() {
+        return !connections.isEmpty();
+    }
+
     public void removeConnection(Session session) {
         for (Set<Session> gameSessions : connections.values()) {
             gameSessions.remove(session);

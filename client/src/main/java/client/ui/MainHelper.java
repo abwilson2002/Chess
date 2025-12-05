@@ -51,7 +51,7 @@ public class MainHelper {
 
         Integer targetID = Integer.parseInt(gameID);
 
-        String moveString = commands[1] + "to" + commands[2];
+        String moveString = commands[1] + " to " + commands[2];
 
         if (promote != null) {
             moveString += " and promoted to " + commands[3];
@@ -107,9 +107,14 @@ public class MainHelper {
                 }
                 case("leave") -> {
                     var commandType = UserGameCommand.CommandType.LEAVE;
-                    var lCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    var lCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID), "observer");
                     webSocket.sendText(gson.toJson(lCommand), true);
                     stillWatching = false;
+                    try {
+                        webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Closing").join();
+                    } catch (Exception ex) {
+                        return;
+                    }
                 }
                 case("highlight") -> {
                     highlightPosition = command[1];
@@ -118,6 +123,9 @@ public class MainHelper {
                     var commandType = UserGameCommand.CommandType.HIGHLIGHT;
                     var hCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID), position);
                     webSocket.sendText(gson.toJson(hCommand), true);
+                }
+                default -> {
+                    System.out.println("Not a valid command");
                 }
             }
         }
@@ -133,11 +141,11 @@ public class MainHelper {
             System.out.println(text + "highlight <position> : highlights the possible moves at a position" + bG);
             System.out.println(text + "move <move from position> <move to position> <promotion piece> : " +
                     "move a piece, see help(2) for details" + bG);
-            System.out.println(text + "help page2 : shows more details about how to input commands" + bG);
+            System.out.println(text + "help page2 : shows more details about how to input commands" + bG + "\n");
         } else {
             System.out.println(text + "<position> : type in the position using the number then the letter (ie. 2f or 6a" + bG);
             System.out.println(text + "promotion : If you can promote, type in the piece's promotion in all caps (ie. QUEEN)" + bG);
-            System.out.println(text + "            note: leave blank if you cannot promote" + bG);
+            System.out.println(text + "            note: leave blank if you cannot promote" + bG + "\n");
         }
     }
 
@@ -235,13 +243,13 @@ public class MainHelper {
                         var input = Map.of("username", bg.user, "gameID", gameID, "playerColor", playerColor);
                         requestInput = gson.toJson(input);
                     }
-                    bg.gameAction(result, requestInput, gameID, playerColor);
+                    bg.gameAction(result, requestInput, gameID, playerColor, scanner);
                 }
                 case ("help") -> {
                     bg.help();
                 }
                 case ("clear") -> {
-                    bg.clear();
+                    bg.clear(scanner);
                 }
                 default -> {
                     System.out.println(result + " is not a valid command, use help to see all valid commands\n");

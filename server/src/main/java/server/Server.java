@@ -60,7 +60,13 @@ public class Server {
                 webSocketHelper(command, ctx);
 
             });
-            ws.onClose(ctx -> System.out.println("Disconnected"));
+            ws.onClose(ctx -> {
+                if (gameConnections.anyConnections()) {
+                    System.out.println("Goodbye");
+                } else {
+                    System.out.println("Disconnected");
+                }
+            });
         });
     }
 
@@ -71,8 +77,8 @@ public class Server {
             case CONNECT -> {
                 try {
                     gameConnections.addConnection(command.getGameID(), ctx.session);
-                    load(command, ctx);
                     connect(command, ctx);
+                    load(command, ctx);
                 } catch (Exception ex) {
                     gameConnections.removeConnection(ctx.session);
                     var errorMessage = ex.getMessage();
@@ -249,11 +255,11 @@ public class Server {
         var moveRequest = new MoveData(targetID, move);
         var service = new UserService(dataAccess);
         var moveResponse = service.move(moveRequest, auth);
-        var loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, moveResponse.board());
+        var loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, moveResponse.game());
         var gson = new Gson();
         var jsonMessage = gson.toJson(loadMessage);
         var moveMade = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION,
-                (moveResponse.user() + " has made a move from" + command.getLocation()), null);
+                (moveResponse.user() + " has made a move from " + command.getLocation()), null);
         var jsonNotif = gson.toJson(moveMade);
         for (var session : gameConnections.getAllSessions(targetID)) {
             try {
@@ -292,6 +298,9 @@ public class Server {
         var loadRequest = new LoadGameData(targetID, auth);
         var service = new UserService(dataAccess);
         var loadResponse = service.load(loadRequest);
+        if (!loadResponse.board().containsKey("1_4")) {
+            System.out.println("Missing queen");
+        }
         var loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, loadResponse.board());
         var gson = new Gson();
         var message = gson.toJson(loadMessage);

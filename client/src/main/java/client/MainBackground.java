@@ -3,27 +3,17 @@ package client;
 import chess.*;
 import client.ui.MainHelper;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
 import model.ListResponse;
 import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
 import static client.ui.EscapeSequences.*;
-import static chess.ChessPiece.PieceType.*;
-import static websocket.messages.ServerMessage.ServerMessageType.NOTIFICATION;
-
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.util.*;
-import java.util.concurrent.CompletionStage;
 
 public class MainBackground {
 
@@ -35,7 +25,7 @@ public class MainBackground {
     boolean loggedIn = false;
     private String playerColor = null;
     private String highlightPosition;
-    private MainHelper help = new MainHelper();
+    private final MainHelper help = new MainHelper();
 
     public MainBackground(String serverName) throws Exception {
 
@@ -119,7 +109,7 @@ public class MainBackground {
         }
     }
 
-    public void gameAction(String result, String requestInput, String gameID, String playerColor) {
+    public void gameAction(String result, String requestInput, String gameID, String playerColor, Scanner scanner) {
         var gson = new Gson();
         if (!loggedIn) {
             System.out.println("Please log in or register before continuing" +
@@ -174,6 +164,12 @@ public class MainBackground {
                             SET_BG_COLOR_BLACK + "\n");
                 }
                 case ("join") -> {
+                    if (Objects.equals(playerColor, "BLUE")) {
+                        this.playerColor = playerColor;
+                        boolean observer = true;
+                        gameMode(gameID, observer, scanner);
+                        return;
+                    }
                     var request = HttpRequest.newBuilder()
                             .uri(new URI(registerUrl))
                             .header("Authorization", userAuth)
@@ -185,8 +181,8 @@ public class MainBackground {
 
                     if (response.statusCode() == 200) {
                         this.playerColor = playerColor;
-                        boolean observer = (Objects.equals(playerColor, "BLUE"));
-                        gameMode(gameID, observer);
+                        boolean observer = false;
+                        gameMode(gameID, observer, scanner);
                     } else {
                         help.joinErrors(response);
                     }
@@ -219,9 +215,8 @@ public class MainBackground {
         }
     }
 
-    public void clear() {
+    public void clear(Scanner scanner) {
         var gson = new Gson();
-        var scanner = new Scanner(System.in);
         System.out.println("You have selected clear, enter your manager password to clear" +
                 SET_BG_COLOR_BLACK);
 
@@ -277,7 +272,7 @@ public class MainBackground {
             directionLetter = -1;
             directionNumber = 1;
             white = false;
-            letters = "  h   g  f   e   d   c  b   a   " + SET_BG_COLOR_BLACK;
+            letters = SET_BG_COLOR_LIGHT_GREY + "     h   g  f   e   d   c  b   a   " + SET_BG_COLOR_BLACK;
         }
         System.out.println(SET_TEXT_COLOR_BLACK + letters);
         for (int i = startNumber; (white ? (i > endNumber) : (i < endNumber)); i += directionNumber) {
@@ -300,7 +295,7 @@ public class MainBackground {
             }
             System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + SET_BG_COLOR_BLACK + "\n");
         }
-        System.out.println(SET_TEXT_COLOR_BLACK + letters);
+        System.out.println(SET_TEXT_COLOR_BLACK + letters + "\n");
     }
 
     private boolean tileColor(int i, int j) {
@@ -339,8 +334,7 @@ public class MainBackground {
         return 0;
     }
 
-    public void gameMode(String gameID, boolean observer) {
-        var scanner = new Scanner(System.in);
+    public void gameMode(String gameID, boolean observer, Scanner scanner) {
         var gson = new Gson();
         String cR = SET_TEXT_COLOR_YELLOW + SET_BG_COLOR_DARK_GREEN; //cR stands for command Request
         try {
@@ -362,7 +356,7 @@ public class MainBackground {
                     playerColor = "black";
                 }
             }
-            var command = new UserGameCommand(commandType, user, Integer.parseInt(gameID), playerColor);
+            var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID), playerColor);
             var startGame = gson.toJson(command);
             webSocket.sendText(startGame, true);
         } catch (Exception ex) {
@@ -374,23 +368,30 @@ public class MainBackground {
             return;
         }
         boolean stillGoing = true;
+        String result = "";
         while (stillGoing) {
-            System.out.println(cR + "[GameMode] What is your command?" + SET_BG_COLOR_BLACK);
-            var result = scanner.nextLine().trim();
+            if (!Objects.equals(result, "")) {
+                System.out.println(cR + "[GameMode] What is your command?" + SET_BG_COLOR_BLACK);
+            }
+            try {
+                result = scanner.nextLine().trim();
+            } catch (Exception ex) {
+                System.out.println("failedToGetInput");
+                continue;
+            }
             String[] commands = result.split("\\s+");
             UserGameCommand.CommandType commandType = UserGameCommand.CommandType.LOAD;
             UserGameCommand command;
             switch (commands[0]) {
                 case ("resign") -> {
-                    System.out.println("Are you sure that you want to resign? (Y or N)");
+                    System.out.println(cR + "Are you sure that you want to resign? (Y or N)" + SET_BG_COLOR_BLACK);
                     var answer = scanner.next();
                     if (!Objects.equals(answer, "Y")) {
                         continue;
                     }
                     commandType = UserGameCommand.CommandType.RESIGN;
-                    command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
+                    command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID), user);
                     webSocket.sendText(gson.toJson(command), true);
-                    stillGoing = false;
                 }
                 case ("leave") -> {
                     commandType = UserGameCommand.CommandType.LEAVE;
@@ -415,7 +416,17 @@ public class MainBackground {
                     help.printer(commands);
                 }
                 case ("move") -> {
+                    if (commands.length < 3) {
+                        System.out.println("Please retry your move command");
+                        continue;
+                    }
                     help.move(commands, this, gameID, userAuth, webSocket);
+                }
+                case ("") -> {
+                    continue;
+                }
+                default -> {
+                    System.out.println("Not a valid command, please use help to see valid commands");
                 }
             }
         }

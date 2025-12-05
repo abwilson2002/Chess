@@ -169,23 +169,23 @@ public class UserService {
         if (!checkExistingUser) {
             throw new DataAccessException("Error: unauthorized");
         }
-        if (Objects.equals(data.auth(), "observer")) {
+        var user = dataAccess.getUser(data.auth(), 1);
+        var game = dataAccess.getGame(data.gameID());
+        if ((!Objects.equals(user.username(), game.whiteUsername())) && (!Objects.equals(user.username(), game.blackUsername()))) {
             return new LeaveResponse("observer", "An observer has left the game");
         }
-        var user = dataAccess.getUser(data.auth(), 1).username();
         var message = "";
         try {
-            dataAccess.dropPlayer(user, data.gameID());
-            var game = dataAccess.getGame(data.gameID()).game();
-            if (game.gameOver) {
-                message = user + " has left the game";
+            dataAccess.dropPlayer(user.username(), data.gameID());
+            if (game.game().gameOver) {
+                message = user.username() + " has left the game";
             } else {
-                message = user + " has taken the cowards way out and left";
+                message = user.username() + " has taken the cowards way out and left";
             }
         } catch (Exception ex) {
             throw new DataAccessException("Error: could not leave");
         }
-        return new LeaveResponse(user, message);
+        return new LeaveResponse(user.username(), message);
     }
 
     public AuthData connect(String auth) throws DataAccessException {
