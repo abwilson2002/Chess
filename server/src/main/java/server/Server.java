@@ -11,6 +11,7 @@ import io.javalin.websocket.WsMessageContext;
 import model.*;
 import dataaccess.*;
 import service.*;
+import webmodel.*;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
@@ -56,58 +57,65 @@ public class Server {
             ws.onMessage(ctx -> {
                 var gson = new Gson();
                 UserGameCommand command = gson.fromJson(ctx.message(), UserGameCommand.class);
+                webSocketHelper(command, ctx);
 
-                switch (command.getCommandType()) {
-                    case CONNECT -> {
-                        try {
-                            gameConnections.addConnection(command.getGameID(), ctx.session);
-                            load(command, ctx);
-                            connect(command, ctx);
-                        } catch (Exception ex) {
-                            gameConnections.removeConnection(ctx.session);
-                            var errorMessage = ex.getMessage();
-                            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-                            ctx.session.getRemote().sendString(gson.toJson(output));
-                        }
-                    }
-                    case MAKE_MOVE -> {
-                        try {
-                            move(command, ctx);
-                        } catch (Exception ex) {
-                            var errorMessage = ex.getMessage();
-                            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-                            if (ctx.session.isOpen()) {
-                                ctx.session.getRemote().sendString(gson.toJson(output));
-                            }
-                        }
-                    }
-                    case LEAVE -> {
-                        gameConnections.removeConnection(ctx.session);
-                        leave(command, ctx);
-                    }
-                    case RESIGN -> {
-                        resign(command, ctx);
-                    }
-                    case LOAD -> {
-                        try {
-                            load(command, ctx);
-                        } catch (Exception ex) {
-                            var errorMessage = ex.getMessage();
-                            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-                            if (ctx.session.isOpen()) {
-                                ctx.session.getRemote().sendString(gson.toJson(output));
-                            }
-                        }
-                    }
-                    case HIGHLIGHT -> {
-                        highlight(command, ctx);
-                    }
-                }
             });
             ws.onClose(ctx -> System.out.println("Disconnected"));
         });
     }
 
+
+    public void webSocketHelper(UserGameCommand command, WsMessageContext ctx) throws IOException {
+        var gson = new Gson();
+        switch (command.getCommandType()) {
+            case CONNECT -> {
+                try {
+                    gameConnections.addConnection(command.getGameID(), ctx.session);
+                    load(command, ctx);
+                    connect(command, ctx);
+                } catch (Exception ex) {
+                    gameConnections.removeConnection(ctx.session);
+                    var errorMessage = ex.getMessage();
+                    var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
+                    if (ctx.session.isOpen()) {
+                        ctx.session.getRemote().sendString(gson.toJson(output));
+                    }
+                }
+            }
+            case MAKE_MOVE -> {
+                try {
+                    move(command, ctx);
+                } catch (Exception ex) {
+                    var errorMessage = ex.getMessage();
+                    var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
+                    if (ctx.session.isOpen()) {
+                        ctx.session.getRemote().sendString(gson.toJson(output));
+                    }
+                }
+            }
+            case LEAVE -> {
+                leave(command, ctx);
+                gameConnections.removeConnection(ctx.session);
+            }
+            case RESIGN -> {
+                resign(command, ctx);
+            }
+            case LOAD -> {
+                try {
+                    load(command, ctx);
+                } catch (Exception ex) {
+                    var errorMessage = ex.getMessage();
+                    var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
+                    if (ctx.session.isOpen()) {
+                        ctx.session.getRemote().sendString(gson.toJson(output));
+                    }
+                }
+            }
+            case HIGHLIGHT -> {
+                highlight(command, ctx);
+            }
+        }
+    }
 
     //Handler Functions
 
@@ -276,7 +284,8 @@ public class Server {
             }
         }
         if (!Objects.equals(moveResponse.gameState(), "")) {
-            var gameUpdate = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, (moveResponse.gameState() + " has made a move"), null);
+            var gameUpdate = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION,
+                    (moveResponse.gameState() + " has made a move"), null);
             var jsonGameState = gson.toJson(gameUpdate);
             for (var session : gameConnections.getAllSessions(targetID)) {
                 if (ctx.session.isOpen()) {

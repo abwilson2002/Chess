@@ -5,6 +5,7 @@ import chess.ChessPosition;
 import model.*;
 import dataaccess.*;
 import org.mindrot.jbcrypt.BCrypt;
+import webmodel.*;
 
 import java.util.Collection;
 import java.util.Objects;

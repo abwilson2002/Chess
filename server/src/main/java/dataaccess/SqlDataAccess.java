@@ -226,7 +226,8 @@ public class SqlDataAccess implements DataAccess {
     public Double createGame(String gameName) throws DataAccessException {
         double numberOfGames = totalGames() + 1;
         try (var conn = DatabaseManager.getConnection()) {
-            try (var statement = conn.prepareStatement("INSERT INTO games (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, NULL, NULL, ?, ?)")) {
+            try (var statement = conn.prepareStatement("INSERT INTO games (gameID, whiteUsername, blackUsername, gameName, game) " +
+                    "VALUES (?, NULL, NULL, ?, ?)")) {
                 statement.setDouble(1, numberOfGames);
                 statement.setString(2, gameName);
                 var serializer = new Gson();

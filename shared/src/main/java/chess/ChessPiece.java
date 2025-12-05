@@ -213,20 +213,39 @@ public class ChessPiece implements Cloneable {
                     int colCheck = col + (holder2 * j);
                     ChessPosition temp = new ChessPosition(rowCheck, colCheck);
                     for (int k = 0; k < 2; k++) {
-                        if (withinBoard(rowCheck, colCheck)
-                                && (!isSpaceFilled(board, temp))) {
-                            possibleMoves.add(new ChessMove(myPosition, temp, null));
-                        } else if (withinBoard(rowCheck, colCheck)
-                                && isSpaceEnemy(board, temp)) {
-                            possibleMoves.add(new ChessMove(myPosition, temp, null));
-                        }
-                        rowCheck = row + (holder2 * i);
-                        colCheck = col + (holder1 * j);
-                        temp = new ChessPosition(rowCheck, colCheck);
-                    }
+                        possibleMoves = knightHelper(rowCheck,
+                                colCheck, board, temp, possibleMoves, myPosition, row, col, holder1, holder2, i, j);
                     }
                 }
             }
+        }
+        return possibleMoves;
+    }
+
+    public Set<ChessMove> knightHelper(int rowCheck,
+                             int colCheck,
+                             ChessBoard board,
+                             ChessPosition temp,
+                             Set<ChessMove> possibleMoves,
+                             ChessPosition myPosition,
+                             int row,
+                             int col,
+                             int holder1,
+                             int holder2,
+                             int i,
+                             int j) {
+        for (int k = 0; k < 2; k++) {
+            if (withinBoard(rowCheck, colCheck)
+                    && (!isSpaceFilled(board, temp))) {
+                possibleMoves.add(new ChessMove(myPosition, temp, null));
+            } else if (withinBoard(rowCheck, colCheck)
+                    && isSpaceEnemy(board, temp)) {
+                possibleMoves.add(new ChessMove(myPosition, temp, null));
+            }
+            rowCheck = row + (holder2 * i);
+            colCheck = col + (holder1 * j);
+            temp = new ChessPosition(rowCheck, colCheck);
+        }
         return possibleMoves;
     }
 
@@ -266,16 +285,14 @@ public class ChessPiece implements Cloneable {
             int colCheck = col + i;
             ChessPosition temp = new ChessPosition(rowCheck, colCheck);
             if (withinBoard(rowCheck, colCheck)) {
-                if (isSpaceFilled(board, temp)) {
-                    if (isSpaceEnemy(board, temp)) {
-                        if (rowCheck == 1 || rowCheck == 8) {
-                            possibleMoves.add(new ChessMove(myPosition, new ChessPosition(rowCheck, colCheck), PieceType.QUEEN));
-                            possibleMoves.add(new ChessMove(myPosition, new ChessPosition(rowCheck, colCheck), PieceType.BISHOP));
-                            possibleMoves.add(new ChessMove(myPosition, new ChessPosition(rowCheck, colCheck), PieceType.KNIGHT));
-                            possibleMoves.add(new ChessMove(myPosition, new ChessPosition(rowCheck, colCheck), PieceType.ROOK));
-                        } else {
-                            possibleMoves.add(new ChessMove(myPosition, temp, null));
-                        }
+                if (isSpaceFilled(board, temp) && (isSpaceEnemy(board, temp))) {
+                    if (rowCheck == 1 || rowCheck == 8) {
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(rowCheck, colCheck), PieceType.QUEEN));
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(rowCheck, colCheck), PieceType.BISHOP));
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(rowCheck, colCheck), PieceType.KNIGHT));
+                        possibleMoves.add(new ChessMove(myPosition, new ChessPosition(rowCheck, colCheck), PieceType.ROOK));
+                    } else {
+                        possibleMoves.add(new ChessMove(myPosition, temp, null));
                     }
                 }
             }

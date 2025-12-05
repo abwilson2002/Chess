@@ -1,6 +1,5 @@
-package model;
+package webmodel;
 
-import chess.ChessGame;
 import chess.ChessPiece;
 import websocket.messages.ServerMessage;
 

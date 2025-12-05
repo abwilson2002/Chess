@@ -1,4 +1,4 @@
-package model;
+package webmodel;
 
 import chess.ChessMove;
 import chess.ChessPiece;

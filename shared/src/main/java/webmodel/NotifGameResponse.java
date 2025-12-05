@@ -1,4 +1,4 @@
-package model;
+package webmodel;
 
 import websocket.messages.ServerMessage;
 

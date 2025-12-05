@@ -1,6 +1,7 @@
 package client;
 
 import chess.*;
+import client.ui.MainHelper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,7 +12,6 @@ import model.GameData;
 import model.ListResponse;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
-
 import static client.ui.EscapeSequences.*;
 import static chess.ChessPiece.PieceType.*;
 import static websocket.messages.ServerMessage.ServerMessageType.NOTIFICATION;
@@ -35,6 +35,7 @@ public class MainBackground {
     boolean loggedIn = false;
     private String playerColor = null;
     private String highlightPosition;
+    private MainHelper help = new MainHelper();
 
     public MainBackground(String serverName) throws Exception {
 
@@ -191,24 +192,7 @@ public class MainBackground {
                         boolean observer = (Objects.equals(playerColor, "BLUE"));
                         gameMode(gameID, observer);
                     } else {
-                        switch (response.statusCode()) {
-                            case (400) -> {
-                                System.out.println("The command was incorrectly entered. Check for spelling and syntax, use help if needed" +
-                                        SET_BG_COLOR_BLACK + "\n");
-                            }
-                            case (401) -> {
-                                System.out.println("Login required before games can be joined" +
-                                        SET_BG_COLOR_BLACK + "\n");
-                            }
-                            case (403) -> {
-                                System.out.println("Someone has already taken that spot" +
-                                        SET_BG_COLOR_BLACK + "\n");
-                            }
-                            case (500) -> {
-                                System.out.println("Make sure the server has started" +
-                                        SET_BG_COLOR_BLACK + "\n");
-                            }
-                        }
+                        help.joinErrors(response);
                     }
                 }
             }
@@ -297,9 +281,9 @@ public class MainBackground {
             for (int j = startLetter; (white ? (j < endLetter) : (j > endLetter)); j += directionLetter) {
                 var place = new ChessPosition(i, j);
                 if (tileColor(i, j)) {
-                    System.out.printf(SET_BG_COLOR_WHITE + pieceName(place, board));
+                    System.out.printf(SET_BG_COLOR_WHITE + help.pieceName(place, board));
                 } else {
-                    System.out.printf(SET_BG_COLOR_BLACK + pieceName(place, board));
+                    System.out.printf(SET_BG_COLOR_BLACK + help.pieceName(place, board));
                 }
             }
             System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + SET_BG_COLOR_BLACK + "\n");
@@ -342,13 +326,13 @@ public class MainBackground {
                     if (positions.contains(place)) {
                         bWV = SET_BG_COLOR_YELLOW;
                     }
-                    System.out.printf(bWV + pieceName(place, board));
+                    System.out.printf(bWV + help.pieceName(place, board));
                     bWV = SET_BG_COLOR_WHITE;
                 } else {
                     if (positions.contains(place)) {
                         bBV = SET_BG_COLOR_RED;
                     }
-                    System.out.printf(bBV + pieceName(place, board));
+                    System.out.printf(bBV + help.pieceName(place, board));
                     bBV = SET_BG_COLOR_BLACK;
                 }
             }
@@ -361,47 +345,6 @@ public class MainBackground {
         boolean iCheck = (i % 2 == 0);
         boolean jCheck = (j % 2 == 0);
         return iCheck == jCheck;
-    }
-
-    private String pieceName(ChessPosition place, Map<String, ChessPiece> board) {
-        String encodedPiece = EMPTY;
-        ChessPiece piece = board.get(ChessBoard.positionToString(place));
-        if (piece == null) {
-            return encodedPiece;
-        }
-        ChessPiece.PieceType type = piece.getPieceType();
-        if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            String pieceColor = SET_TEXT_COLOR_ORANGE;
-            if (type == PAWN) {
-                encodedPiece = pieceColor + WHITE_PAWN;
-            } else if (type == ROOK) {
-                encodedPiece = pieceColor + WHITE_ROOK;
-            } else if (type == KNIGHT) {
-                encodedPiece = pieceColor + WHITE_KNIGHT;
-            } else if (type == BISHOP) {
-                encodedPiece = pieceColor + WHITE_BISHOP;
-            } else if (type == QUEEN) {
-                encodedPiece = pieceColor + WHITE_QUEEN;
-            } else {
-                encodedPiece = pieceColor + WHITE_KING;
-            }
-        } else {
-            String pieceColor = SET_TEXT_COLOR_GREEN;
-            if (type == PAWN) {
-                encodedPiece = pieceColor + BLACK_PAWN;
-            } else if (type == ROOK) {
-                encodedPiece = pieceColor + BLACK_ROOK;
-            } else if (type == KNIGHT) {
-                encodedPiece = pieceColor + BLACK_KNIGHT;
-            } else if (type == BISHOP) {
-                encodedPiece = pieceColor + BLACK_BISHOP;
-            } else if (type == QUEEN) {
-                encodedPiece = pieceColor + BLACK_QUEEN;
-            } else {
-                encodedPiece = pieceColor + BLACK_KING;
-            }
-        }
-        return encodedPiece;
     }
 
     public Integer letterToNumber(Character l) {
@@ -459,48 +402,13 @@ public class MainBackground {
             }
             var command = new UserGameCommand(commandType, user, Integer.parseInt(gameID), playerColor);
             var startGame = gson.toJson(command);
-
             webSocket.sendText(startGame, true);
         } catch (Exception ex) {
             System.out.println("Failed to connect to websocket");
             return;
         }
-
         if (observer) {
-            System.out.println(cR + "Observing game " + gameID + SET_BG_COLOR_BLACK);
-            boolean stillWatching = true;
-            while (stillWatching) {
-                var baseCommand = scanner.nextLine().trim();
-                String[] command = baseCommand.split("\\s+");
-                switch(command[0]) {
-                    case("help") -> {
-                        var text = SET_TEXT_COLOR_YELLOW + SET_BG_COLOR_DARK_GREEN;
-                        var bG = SET_BG_COLOR_BLACK;
-                        System.out.println(text + "leave : stop observing the game" + bG);
-                        System.out.println(text + "highlight <position> : highlights the possible moves at a position" + bG);
-                        System.out.println(text + "update : updates the board to the most current state" + bG);
-                    }
-                    case("update") -> {
-                        var commandType = UserGameCommand.CommandType.LOAD;
-                        var uCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
-                        webSocket.sendText(gson.toJson(uCommand), true);
-                    }
-                    case("leave") -> {
-                        var commandType = UserGameCommand.CommandType.LEAVE;
-                        var lCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
-                        webSocket.sendText(gson.toJson(lCommand), true);
-                        stillWatching = false;
-                    }
-                    case("highlight") -> {
-                        highlightPosition = command[1];
-                        Integer firstNumber = letterToNumber(highlightPosition.charAt(0));
-                        String position = String.valueOf((firstNumber*10) + (highlightPosition.charAt(1) - '0'));
-                        var commandType = UserGameCommand.CommandType.HIGHLIGHT;
-                        var hCommand = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID), position);
-                        webSocket.sendText(gson.toJson(hCommand), true);
-                    }
-                }
-            }
+            help.observer(cR, gameID, scanner, webSocket, userAuth, gson, highlightPosition, this);
             return;
         }
         boolean stillGoing = true;
@@ -542,90 +450,10 @@ public class MainBackground {
                     webSocket.sendText(gson.toJson(command), true);
                 }
                 case ("help") -> {
-                    var text = SET_BG_COLOR_DARK_GREEN + SET_TEXT_COLOR_YELLOW;
-                    var bG = SET_BG_COLOR_BLACK;
-                    if (commands.length == 1) {
-                        System.out.println(text + "update : updates the board to the most current state" + bG);
-                        System.out.println(text + "resign : forfeits the game for you" + bG);
-                        System.out.println(text + "leave : the cowards way out, leave without forfeiting" + bG);
-                        System.out.println(text + "highlight <position> : highlights the possible moves at a position" + bG);
-                        System.out.println(text + "move <move from position> <move to position> <promotion piece> : " +
-                                "move a piece, see help(2) for details" + bG);
-                        System.out.println(text + "help page2 : shows more details about how to input commands" + bG);
-                    } else {
-                        System.out.println(text + "<position> : type in the position using the number then the letter (ie. 2f or 6a" + bG);
-                        System.out.println(text + "promotion : If you can promote, type in the piece's promotion in all caps (ie. QUEEN)" + bG);
-                        System.out.println(text + "            note: leave blank if you cannot promote" + bG);
-                    }
+                    help.printer(commands);
                 }
                 case ("move") -> {
-                    var moveStart = commands[1];
-                    var moveEnd = commands[2];
-                    String promo = "null";
-                    ChessPiece.PieceType promote = null;
-                    try {
-                        if (commands.length > 3) {
-                            promo = commands[3];
-                        }
-                    } catch (Exception ex) {
-                        System.out.println("Promotion piece not a real piece");
-                        continue;
-                    }
-
-                    ChessPosition start = new ChessPosition(
-                            ((moveStart.charAt(1) - '0')),
-                            letterToNumber((moveStart.charAt(0))));
-
-                    ChessPosition end = new ChessPosition(
-                            ((moveEnd.charAt(1) - '0')),
-                            letterToNumber((moveEnd.charAt(0))));
-
-                    if (!promo.equals("null")) {
-                        promote = ChessPiece.PieceType.valueOf(promo);
-                    }
-                    var move = new ChessMove(start, end, promote);
-
-                    Integer targetID = Integer.parseInt(gameID);
-
-                    UserGameCommand moveCommand = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, userAuth, targetID, move);
-
-                    var moveInput = gson.toJson(moveCommand);
-
-                    webSocket.sendText(moveInput, true);
-
-                    /*String registerUrl = serverUrl + "/game/play";
-                    try {
-                        var request = HttpRequest.newBuilder()
-                                .uri(new URI(registerUrl))
-                                .header("Authorization", userAuth)
-                                .timeout(java.time.Duration.ofMillis(5000))
-                                .PUT(HttpRequest.BodyPublishers.ofString(mapInput))
-                                .build();
-
-                        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-                        if (response.statusCode() == 200) {
-                            var responseBody = response.body();
-
-                            JsonElement root = JsonParser.parseString(responseBody);
-
-                            JsonObject allPiecesMap = root.getAsJsonObject().getAsJsonObject("board");
-
-                            Type type = new TypeToken<Map<String, ChessPiece>>() {
-                            }.getType();
-
-                            Map<String, ChessPiece> progress = gson.fromJson(allPiecesMap, type);
-
-                            boardPrinter(progress);
-                        } else if (response.statusCode() == 202) {
-                            System.out.println(cR + response.body() + SET_BG_COLOR_BLACK);
-                        } else {
-                            throw new Exception(response.body());
-                        }
-
-                    } catch (Exception ex) {
-                        System.out.println("Error: Could not complete command");
-                    }*/
+                    help.move(commands, this, gameID, userAuth, webSocket);
                 }
             }
         }
@@ -634,79 +462,5 @@ public class MainBackground {
         } catch (Exception ex) {
             return;
         }
-    }
-}
-
-class MyWebSocketListener implements WebSocket.Listener {
-
-    private final MainBackground thisInstance;
-
-    public MyWebSocketListener(MainBackground instance) {
-        thisInstance = instance;
-    }
-
-    @Override
-    public void onOpen(WebSocket webSocket) {
-        WebSocket.Listener.super.onOpen(webSocket);
-    }
-
-    public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-        String report = data.toString();
-        var gson = new Gson();
-
-        JsonElement root = JsonParser.parseString(report);
-
-        JsonObject commandType = root.getAsJsonObject().getAsJsonObject("serverMessageType");
-
-        ServerMessage command = gson.fromJson(commandType, ServerMessage.class);
-
-        switch (command.getServerMessageType()) {
-            case LOAD_GAME -> {
-                Type type = new TypeToken<Map<String, ChessPiece>>() {
-                }.getType();
-
-                JsonObject allPiecesMap = root.getAsJsonObject().getAsJsonObject("game");
-
-                Map<String, ChessPiece> progress = gson.fromJson(allPiecesMap, type);
-
-                this.thisInstance.boardPrinter(progress);
-            }
-            case ERROR, NOTIFICATION -> {
-                String message = "";
-                if (command.getServerMessageType() == NOTIFICATION) {
-                    message = root.getAsJsonObject().get("message").getAsString();
-                } else {
-                    message = root.getAsJsonObject().get("errorMessage").getAsString();
-                }
-
-                System.out.println(SET_BG_COLOR_BLACK + SET_TEXT_COLOR_YELLOW + message);
-            }
-            case LOAD_HIGHLIGHT -> {
-                Type type = new TypeToken<Map<String, ChessPiece>>() {
-                }.getType();
-
-                JsonObject board = root.getAsJsonObject().getAsJsonObject("game");
-
-                Map<String, ChessPiece> progress = gson.fromJson(board, type);
-
-                type = new TypeToken<Collection<ChessMove>>() {
-                }.getType();
-
-                var vMoves = root.getAsJsonObject().get("moves");
-
-                Collection<ChessMove> moves = gson.fromJson(vMoves, type);
-
-                this.thisInstance.boardPrinterHighlight(progress, moves);
-            }
-        }
-        return WebSocket.Listener.super.onText(webSocket, data, last);
-    }
-
-    public void onClose(WebSocket webSocket) {
-        WebSocket.Listener.super.onClose(webSocket, 200, "Done");
-    }
-
-    public void onError(WebSocket webSocket, Exception ex) {
-        WebSocket.Listener.super.onError(webSocket, ex);
     }
 }
