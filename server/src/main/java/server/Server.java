@@ -81,7 +81,7 @@ public class Server {
                         if (ctx.session.isOpen()) {
                             ctx.session.getRemote().sendString(gson.toJson(output));
                         }
-                    } catch (Exception _) {
+                    } catch (Exception asdf) {
 
                     }
                 }
@@ -96,7 +96,7 @@ public class Server {
                         if (ctx.session.isOpen()) {
                             ctx.session.getRemote().sendString(gson.toJson(output));
                         }
-                    } catch (Exception _) {
+                    } catch (Exception asf) {
 
                     }
                 }
@@ -118,7 +118,7 @@ public class Server {
                         if (ctx.session.isOpen()) {
                             ctx.session.getRemote().sendString(gson.toJson(output));
                         }
-                    } catch (Exception _) {
+                    } catch (Exception a) {
 
                     }
                 }
@@ -295,7 +295,7 @@ public class Server {
                 if (ctx.session.isOpen()) {
                     session.getRemote().sendString(jsonNotif);
                 }
-            } catch (Exception _) {
+            } catch (Exception a) {
 
             }
         }
@@ -308,7 +308,7 @@ public class Server {
                     if (ctx.session.isOpen()) {
                         session.getRemote().sendString(jsonGameState);
                     }
-                } catch (Exception _) {
+                } catch (Exception a) {
 
                 }
             }
@@ -328,7 +328,7 @@ public class Server {
             if (ctx.session.isOpen()) {
                 ctx.session.getRemote().sendString(message);
             }
-        } catch (Exception _) {
+        } catch (Exception a) {
 
         }
     }
@@ -352,7 +352,7 @@ public class Server {
                     if (ctx.session.isOpen()) {
                         session.getRemote().sendString(message);
                     }
-                } catch (Exception _) {
+                } catch (Exception a) {
 
                 }
             }
@@ -364,7 +364,7 @@ public class Server {
                 if (ctx.session.isOpen()) {
                     ctx.session.getRemote().sendString(gson.toJson(output));
                 }
-            } catch (Exception _) {
+            } catch (Exception a) {
 
             }
         }
@@ -385,7 +385,7 @@ public class Server {
                 if (ctx.session.isOpen()) {
                     ctx.session.getRemote().sendString(gson.toJson(highMessage));
                 }
-            } catch (Exception _) {
+            } catch (Exception a) {
 
             }
         } catch (Exception ex) {
@@ -396,7 +396,7 @@ public class Server {
                 if (ctx.session.isOpen()) {
                     ctx.session.getRemote().sendString(gson.toJson(output));
                 }
-            } catch (Exception _) {
+            } catch (Exception a) {
 
             }
         }
@@ -418,7 +418,7 @@ public class Server {
                     if (ctx.session.isOpen()) {
                         session.getRemote().sendString(gson.toJson(message));
                     }
-                } catch (Exception _) {
+                } catch (Exception a) {
 
                 }
             }
@@ -438,7 +438,7 @@ public class Server {
                     if (ctx.session.isOpen()) {
                         session.getRemote().sendString(gson.toJson(message));
                     }
-                } catch (Exception _) {
+                } catch (Exception a) {
 
                 }
             }
@@ -450,7 +450,7 @@ public class Server {
                 if (ctx.session.isOpen()) {
                     ctx.session.getRemote().sendString(gson.toJson(output));
                 }
-            } catch (Exception _) {
+            } catch (Exception a) {
 
             }
         }
