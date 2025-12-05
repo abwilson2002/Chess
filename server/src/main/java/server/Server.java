@@ -104,7 +104,7 @@ public class Server {
                     }
                 }
             });
-            ws.onClose(_ -> System.out.println("Disconnected"));
+            ws.onClose(ctx -> System.out.println("Disconnected"));
         });
     }
 
