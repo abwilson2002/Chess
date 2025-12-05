@@ -305,15 +305,17 @@ public class SqlDataAccess implements DataAccess {
     }
 
     public void dropPlayer(String user, Double gameID) throws DataAccessException {
-        String query = "UPDATE games SET ? = null WHERE gameID = ?";
-        String player = "whiteusername";
-        if (Objects.equals(getGame(gameID).blackUsername(), user)) {
-            player = "blackusername";
+        var game = getGame(gameID);
+        String chosenSide;
+        if (game.whiteUsername() != null) {
+            chosenSide = "whiteUsername";
+        } else {
+            chosenSide = "blackUsername";
         }
+        String query = String.format("UPDATE games SET %s = null WHERE gameID = ?", chosenSide);
         try (var conn = DatabaseManager.getConnection()) {
             try (var statement = conn.prepareStatement(query)) {
-                statement.setString(1, player);
-                statement.setDouble(2, gameID);
+                statement.setDouble(1, gameID);
                 statement.executeUpdate();
             }
         }

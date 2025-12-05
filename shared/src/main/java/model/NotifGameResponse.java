@@ -2,5 +2,5 @@ package model;
 
 import websocket.messages.ServerMessage;
 
-public record NotifGameResponse(ServerMessage type, String message) {
+public record NotifGameResponse(ServerMessage.ServerMessageType serverMessageType, String message, String errorMessage) {
 }

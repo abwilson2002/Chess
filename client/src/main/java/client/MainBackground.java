@@ -14,6 +14,7 @@ import websocket.messages.ServerMessage;
 
 import static client.ui.EscapeSequences.*;
 import static chess.ChessPiece.PieceType.*;
+import static websocket.messages.ServerMessage.ServerMessageType.NOTIFICATION;
 
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -502,14 +503,13 @@ public class MainBackground {
             }
             return;
         }
-        var commandType = UserGameCommand.CommandType.LOAD;
-        var command = new UserGameCommand(commandType, userAuth, Integer.parseInt(gameID));
-        webSocket.sendText(gson.toJson(command), true);
         boolean stillGoing = true;
         while (stillGoing) {
             System.out.println(cR + "[GameMode] What is your command?" + SET_BG_COLOR_BLACK);
             var result = scanner.nextLine().trim();
             String[] commands = result.split("\\s+");
+            UserGameCommand.CommandType commandType = UserGameCommand.CommandType.LOAD;
+            UserGameCommand command;
             switch (commands[0]) {
                 case ("resign") -> {
                     System.out.println("Are you sure that you want to resign? (Y or N)");
@@ -656,7 +656,7 @@ class MyWebSocketListener implements WebSocket.Listener {
 
         JsonElement root = JsonParser.parseString(report);
 
-        JsonObject commandType = root.getAsJsonObject().getAsJsonObject("type");
+        JsonObject commandType = root.getAsJsonObject().getAsJsonObject("serverMessageType");
 
         ServerMessage command = gson.fromJson(commandType, ServerMessage.class);
 
@@ -665,14 +665,19 @@ class MyWebSocketListener implements WebSocket.Listener {
                 Type type = new TypeToken<Map<String, ChessPiece>>() {
                 }.getType();
 
-                JsonObject allPiecesMap = root.getAsJsonObject().getAsJsonObject("board");
+                JsonObject allPiecesMap = root.getAsJsonObject().getAsJsonObject("game");
 
                 Map<String, ChessPiece> progress = gson.fromJson(allPiecesMap, type);
 
                 this.thisInstance.boardPrinter(progress);
             }
             case ERROR, NOTIFICATION -> {
-                String message = root.getAsJsonObject().get("message").getAsString();
+                String message = "";
+                if (command.getServerMessageType() == NOTIFICATION) {
+                    message = root.getAsJsonObject().get("message").getAsString();
+                } else {
+                    message = root.getAsJsonObject().get("errorMessage").getAsString();
+                }
 
                 System.out.println(SET_BG_COLOR_BLACK + SET_TEXT_COLOR_YELLOW + message);
             }
@@ -680,7 +685,7 @@ class MyWebSocketListener implements WebSocket.Listener {
                 Type type = new TypeToken<Map<String, ChessPiece>>() {
                 }.getType();
 
-                JsonObject board = root.getAsJsonObject().getAsJsonObject("board");
+                JsonObject board = root.getAsJsonObject().getAsJsonObject("game");
 
                 Map<String, ChessPiece> progress = gson.fromJson(board, type);
 

@@ -1,9 +1,10 @@
 package model;
 
+import chess.ChessGame;
 import chess.ChessPiece;
 import websocket.messages.ServerMessage;
 
 import java.util.Map;
 
-public record LoadGameMessage(ServerMessage type, Map<String, ChessPiece> board) {
+public record LoadGameMessage(ServerMessage.ServerMessageType serverMessageType, Map<String, ChessPiece> game) {
 }

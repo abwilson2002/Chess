@@ -27,8 +27,7 @@ public class Server {
         try {
             DatabaseManager.createDatabase();
             dataAccess.init();
-        }
-        catch (DataAccessException ex) {
+        } catch (DataAccessException ex) {
             System.err.println("Failed to create tables");
         }
 
@@ -51,30 +50,54 @@ public class Server {
 
         javalinObj.ws("/ws", ws -> {
             ws.onConnect(ctx -> {
-               ctx.enableAutomaticPings();
-               System.out.println("Connected");
+                ctx.enableAutomaticPings();
+                System.out.println("Connected");
             });
             ws.onMessage(ctx -> {
                 var gson = new Gson();
                 UserGameCommand command = gson.fromJson(ctx.message(), UserGameCommand.class);
 
-                switch(command.getCommandType()) {
+                switch (command.getCommandType()) {
                     case CONNECT -> {
-                        gameConnections.addConnection(command.getGameID(), ctx.session);
+                        try {
+                            gameConnections.addConnection(command.getGameID(), ctx.session);
+                            load(command, ctx);
+                            connect(command, ctx);
+                        } catch (Exception ex) {
+                            gameConnections.removeConnection(ctx.session);
+                            var errorMessage = ex.getMessage();
+                            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
+                            ctx.session.getRemote().sendString(gson.toJson(output));
+                        }
                     }
                     case MAKE_MOVE -> {
-                        move(command, ctx);
+                        try {
+                            move(command, ctx);
+                        } catch (Exception ex) {
+                            var errorMessage = ex.getMessage();
+                            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
+                            if (ctx.session.isOpen()) {
+                                ctx.session.getRemote().sendString(gson.toJson(output));
+                            }
+                        }
                     }
                     case LEAVE -> {
                         gameConnections.removeConnection(ctx.session);
                         leave(command, ctx);
                     }
                     case RESIGN -> {
-                        gameConnections.removeConnection(ctx.session);
                         resign(command, ctx);
                     }
                     case LOAD -> {
-                        load(command, ctx);
+                        try {
+                            load(command, ctx);
+                        } catch (Exception ex) {
+                            var errorMessage = ex.getMessage();
+                            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
+                            if (ctx.session.isOpen()) {
+                                ctx.session.getRemote().sendString(gson.toJson(output));
+                            }
+                        }
                     }
                     case HIGHLIGHT -> {
                         highlight(command, ctx);
@@ -100,8 +123,7 @@ public class Server {
             var service = new UserService(dataAccess);
             var regResponse = service.register(user);
             ctx.result(serializer.toJson(regResponse));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             if (ex.getMessage().equals("Error: bad request")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(400).result(message);
@@ -122,8 +144,7 @@ public class Server {
             var service = new UserService(dataAccess);
             var loginResponse = service.login(user);
             ctx.result(serializer.toJson(loginResponse));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             if (ex.getMessage().equals("Error: bad request")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(400).result(message);
@@ -144,8 +165,7 @@ public class Server {
             var service = new UserService(dataAccess);
             var logoutResponse = service.logout(user);
             ctx.result(serializer.toJson(logoutResponse));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             if (ex.getMessage().equals("Error: unauthorized")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(401).result(message);
@@ -163,8 +183,7 @@ public class Server {
             var service = new UserService(dataAccess);
             var listResponse = service.list(authToken);
             ctx.result(serializer.toJson(listResponse));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             if (ex.getMessage().equals("Error: unauthorized")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(401).result(message);
@@ -183,8 +202,7 @@ public class Server {
             var service = new UserService(dataAccess);
             var createResponse = service.create(game.gameName(), auth);
             ctx.result(serializer.toJson(createResponse));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             if (ex.getMessage().equals("Error: bad request")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(400).result(message);
@@ -217,8 +235,7 @@ public class Server {
             var service = new UserService(dataAccess);
             var joinResponse = service.join(joinRequest, auth);
             ctx.result(serializer.toJson(joinResponse));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             if (ex.getMessage().equals("Error: bad request")) {
                 String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
                 ctx.status(400).result(message);
@@ -235,54 +252,51 @@ public class Server {
         }
     }
 
-    private void move(UserGameCommand command, WsMessageContext ctx) throws IOException {
-        try {
-            var auth = command.getAuthToken();
-            var targetID = Double.valueOf(command.getGameID());
-            var move = command.getMove();
-            var moveRequest = new MoveData(targetID, move);
-            var service = new UserService(dataAccess);
-            var moveResponse = service.move(moveRequest, auth);
-            var loadMessage = new LoadGameMessage(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME), moveResponse.board());
-            var gson = new Gson();
-            var jsonMessage = gson.toJson(loadMessage);
-            var moveMade = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION), (moveResponse.user() + " has made a move"));
-            var jsonNotif = gson.toJson(moveMade);
-            for (var session : gameConnections.getAllSessions(targetID)) {
+    private void move(UserGameCommand command, WsMessageContext ctx) throws DataAccessException, IOException {
+        var auth = command.getAuthToken();
+        var targetID = Double.valueOf(command.getGameID());
+        var move = command.getMove();
+        var moveRequest = new MoveData(targetID, move);
+        var service = new UserService(dataAccess);
+        var moveResponse = service.move(moveRequest, auth);
+        var loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, moveResponse.board());
+        var gson = new Gson();
+        var jsonMessage = gson.toJson(loadMessage);
+        var moveMade = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, (moveResponse.user() + " has made a move"), null);
+        var jsonNotif = gson.toJson(moveMade);
+        for (var session : gameConnections.getAllSessions(targetID)) {
+            if (ctx.session.isOpen()) {
                 session.getRemote().sendString(jsonMessage);
+            }
+            if (session == ctx.session) {
+                continue;
+            }
+            if (ctx.session.isOpen()) {
                 session.getRemote().sendString(jsonNotif);
             }
-            if (!Objects.equals(moveResponse.gameState(), "")) {
-                var gameUpdate = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION), (moveResponse.user() + " has made a move"));
-                var jsonGameState = gson.toJson(gameUpdate);
-                for (var session : gameConnections.getAllSessions(targetID)) {
+        }
+        if (!Objects.equals(moveResponse.gameState(), "")) {
+            var gameUpdate = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, (moveResponse.gameState() + " has made a move"), null);
+            var jsonGameState = gson.toJson(gameUpdate);
+            for (var session : gameConnections.getAllSessions(targetID)) {
+                if (ctx.session.isOpen()) {
                     session.getRemote().sendString(jsonGameState);
                 }
             }
-        } catch (Exception ex) {
-            var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
-            var gson = new Gson();
-            ctx.session.getRemote().sendString(gson.toJson(output));
         }
     }
 
-    private void load(UserGameCommand command, WsMessageContext ctx) throws IOException {
-        try {
-            var auth = command.getAuthToken();
-            var targetID = Double.valueOf(command.getGameID());
-            var loadRequest = new LoadGameData(targetID, auth);
-            var service = new UserService(dataAccess);
-            var loadResponse = service.load(loadRequest);
-            var loadMessage = new LoadGameMessage(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME), loadResponse.board());
-            var gson = new Gson();
-            var message = gson.toJson(loadMessage);
+    private void load(UserGameCommand command, WsMessageContext ctx) throws DataAccessException, IOException {
+        var auth = command.getAuthToken();
+        var targetID = Double.valueOf(command.getGameID());
+        var loadRequest = new LoadGameData(targetID, auth);
+        var service = new UserService(dataAccess);
+        var loadResponse = service.load(loadRequest);
+        var loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, loadResponse.board());
+        var gson = new Gson();
+        var message = gson.toJson(loadMessage);
+        if (ctx.session.isOpen()) {
             ctx.session.getRemote().sendString(message);
-        } catch (Exception ex) {
-            var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
-            var gson = new Gson();
-            ctx.session.getRemote().sendString(gson.toJson(output));
         }
     }
 
@@ -294,15 +308,24 @@ public class Server {
             var service = new UserService(dataAccess);
             var leaveResponse = service.leave(leaveRequest);
             var leaveString = leaveResponse.message();
-            var leaveMessage = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION), leaveString);
+            var leaveMessage = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, leaveString, null);
             var gson = new Gson();
             var message = gson.toJson(leaveMessage);
-            ctx.session.getRemote().sendString(message);
+            for (var session : gameConnections.getAllSessions(targetID)) {
+                if (session == ctx.session) {
+                    continue;
+                }
+                if (ctx.session.isOpen()) {
+                    session.getRemote().sendString(message);
+                }
+            }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
+            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
             var gson = new Gson();
-            ctx.session.getRemote().sendString(gson.toJson(output));
+            if (ctx.session.isOpen()) {
+                ctx.session.getRemote().sendString(gson.toJson(output));
+            }
         }
     }
 
@@ -313,34 +336,39 @@ public class Server {
             var highRequest = new HighGameData(targetID, auth, command.getLocation());
             var service = new UserService(dataAccess);
             var highResponse = service.highlight(highRequest);
-            var highMessage = new HighlightMessage(new ServerMessage(ServerMessage.ServerMessageType.LOAD_HIGHLIGHT),
+            var highMessage = new HighlightMessage(ServerMessage.ServerMessageType.LOAD_HIGHLIGHT,
                     highResponse.allPieces(),
                     highResponse.moves());
             var gson = new Gson();
-            ctx.session.getRemote().sendString(gson.toJson(highMessage));
-        } catch (Exception ex) {
-            var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
-            var gson = new Gson();
-            ctx.session.getRemote().sendString(gson.toJson(output));
-        }
-    }
-
-    private void connect(UserGameCommand command, WsMessageContext ctx) throws IOException {
-        try {
-            String username = command.getAuthToken();
-            String playerColor = command.getLocation();
-            String connectMessage = username + " has connected to the game as " + playerColor;
-            var gson = new Gson();
-            for (var session : gameConnections.getAllSessions(command.getGameID())) {
-                session.getRemote().sendString(gson.toJson(connectMessage));
+            if (ctx.session.isOpen()) {
+                ctx.session.getRemote().sendString(gson.toJson(highMessage));
             }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
+            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
             var gson = new Gson();
-            ctx.session.getRemote().sendString(gson.toJson(output));
+            if (ctx.session.isOpen()) {
+                ctx.session.getRemote().sendString(gson.toJson(output));
+            }
         }
+    }
+
+    private void connect(UserGameCommand command, WsMessageContext ctx) throws DataAccessException, IOException {
+            String username = command.getAuthToken();
+            var service = new UserService(dataAccess);
+            var connectReturn = service.connect(username);
+            String playerColor = command.getLocation();
+            String connectMessage = connectReturn.username() + " has connected to the game as " + playerColor;
+            var gson = new Gson();
+            var message = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, connectMessage, null);
+            for (var session : gameConnections.getAllSessions(command.getGameID())) {
+                if (session == ctx.session) {
+                    continue;
+                }
+                if (ctx.session.isOpen()) {
+                    session.getRemote().sendString(gson.toJson(message));
+                }
+            }
     }
 
     private void resign(UserGameCommand command, WsMessageContext ctx) throws IOException {
@@ -348,17 +376,22 @@ public class Server {
             String auth = command.getAuthToken();
             String username = command.getLocation();
             String resignMessage = username + " has resigned";
+            var message = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, resignMessage, null);
             var service = new UserService(dataAccess);
             service.resign(auth, command.getGameID().doubleValue());
             var gson = new Gson();
             for (var session : gameConnections.getAllSessions(command.getGameID())) {
-                session.getRemote().sendString(gson.toJson(resignMessage));
+                if (ctx.session.isOpen()) {
+                    session.getRemote().sendString(gson.toJson(message));
+                }
             }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(new ServerMessage(ServerMessage.ServerMessageType.ERROR), errorMessage);
+            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
             var gson = new Gson();
-            ctx.session.getRemote().sendString(gson.toJson(output));
+            if (ctx.session.isOpen()) {
+                ctx.session.getRemote().sendString(gson.toJson(output));
+            }
         }
     }
 

@@ -6,5 +6,5 @@ import websocket.messages.ServerMessage;
 import java.util.Collection;
 import java.util.Map;
 
-public record HighlightMessage(ServerMessage type, Map<String, ChessPiece> board, Collection<ChessMove> moves) {
+public record HighlightMessage(ServerMessage.ServerMessageType serverMessageType, Map<String, ChessPiece> board, Collection<ChessMove> moves) {
 }

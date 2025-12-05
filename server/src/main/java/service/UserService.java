@@ -123,6 +123,9 @@ public class UserService {
             throw new DataAccessException("Game is over, no moves allowed");
         }
         boolean whitePlayer = !Objects.equals(gameData.blackUsername(), user.username());
+        if (!Objects.equals(gameData.whiteUsername(), user.username()) && whitePlayer) {
+            throw new DataAccessException("Observers can't make moves");
+        }
         if (((game.getTeamTurn() == ChessGame.TeamColor.WHITE) & !whitePlayer) || (game.getTeamTurn() == ChessGame.TeamColor.BLACK) & whitePlayer) {
             throw new DataAccessException("Not your turn");
         }
@@ -161,12 +164,12 @@ public class UserService {
     }
 
     public LeaveResponse leave(LeaveGameData data) throws DataAccessException {
-        if (Objects.equals(data.auth(), "observer")) {
-            return new LeaveResponse("observer", "An observer has left the game");
-        }
         var checkExistingUser = dataAccess.checkAuth(data.auth());
         if (!checkExistingUser) {
             throw new DataAccessException("Error: unauthorized");
+        }
+        if (Objects.equals(data.auth(), "observer")) {
+            return new LeaveResponse("observer", "An observer has left the game");
         }
         var user = dataAccess.getUser(data.auth(), 1).username();
         var message = "";
@@ -182,6 +185,14 @@ public class UserService {
             throw new DataAccessException("Error: could not leave");
         }
         return new LeaveResponse(user, message);
+    }
+
+    public AuthData connect(String auth) throws DataAccessException {
+        var checkExistingUser = dataAccess.checkAuth(auth);
+        if (!checkExistingUser) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+        return dataAccess.getUser(auth, 1);
     }
 
     public HighlightResponse highlight(HighGameData data) throws DataAccessException{
@@ -207,8 +218,11 @@ public class UserService {
         }
         var user = dataAccess.getUser(auth, 1);
         var game = dataAccess.getGame(gameID);
-        if (!Objects.equals(user.username(), game.whiteUsername()) || !Objects.equals(user.username(), game.blackUsername())) {
+        if (!Objects.equals(user.username(), game.whiteUsername()) && !Objects.equals(user.username(), game.blackUsername())) {
             throw new DataAccessException("Error: not allowed to resign if you are not a player");
+        }
+        if (game.game().gameOver) {
+            throw new DataAccessException("Cannot resign, the game is already over");
         }
         game.game().gameOver = true;
         dataAccess.moveGame(game.game(), gameID);
