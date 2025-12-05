@@ -77,8 +77,12 @@ public class Server {
                     gameConnections.removeConnection(ctx.session);
                     var errorMessage = ex.getMessage();
                     var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-                    if (ctx.session.isOpen()) {
-                        ctx.session.getRemote().sendString(gson.toJson(output));
+                    try {
+                        if (ctx.session.isOpen()) {
+                            ctx.session.getRemote().sendString(gson.toJson(output));
+                        }
+                    } catch (Exception _) {
+
                     }
                 }
             }
@@ -88,8 +92,12 @@ public class Server {
                 } catch (Exception ex) {
                     var errorMessage = ex.getMessage();
                     var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-                    if (ctx.session.isOpen()) {
-                        ctx.session.getRemote().sendString(gson.toJson(output));
+                    try {
+                        if (ctx.session.isOpen()) {
+                            ctx.session.getRemote().sendString(gson.toJson(output));
+                        }
+                    } catch (Exception _) {
+
                     }
                 }
             }
@@ -106,8 +114,12 @@ public class Server {
                 } catch (Exception ex) {
                     var errorMessage = ex.getMessage();
                     var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-                    if (ctx.session.isOpen()) {
-                        ctx.session.getRemote().sendString(gson.toJson(output));
+                    try {
+                        if (ctx.session.isOpen()) {
+                            ctx.session.getRemote().sendString(gson.toJson(output));
+                        }
+                    } catch (Exception _) {
+
                     }
                 }
             }
@@ -273,14 +285,18 @@ public class Server {
         var moveMade = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, (moveResponse.user() + " has made a move"), null);
         var jsonNotif = gson.toJson(moveMade);
         for (var session : gameConnections.getAllSessions(targetID)) {
-            if (ctx.session.isOpen()) {
-                session.getRemote().sendString(jsonMessage);
-            }
-            if (session == ctx.session) {
-                continue;
-            }
-            if (ctx.session.isOpen()) {
-                session.getRemote().sendString(jsonNotif);
+            try {
+                if (ctx.session.isOpen()) {
+                    session.getRemote().sendString(jsonMessage);
+                }
+                if (session == ctx.session) {
+                    continue;
+                }
+                if (ctx.session.isOpen()) {
+                    session.getRemote().sendString(jsonNotif);
+                }
+            } catch (Exception _) {
+
             }
         }
         if (!Objects.equals(moveResponse.gameState(), "")) {
@@ -288,8 +304,12 @@ public class Server {
                     (moveResponse.gameState() + " has made a move"), null);
             var jsonGameState = gson.toJson(gameUpdate);
             for (var session : gameConnections.getAllSessions(targetID)) {
-                if (ctx.session.isOpen()) {
-                    session.getRemote().sendString(jsonGameState);
+                try {
+                    if (ctx.session.isOpen()) {
+                        session.getRemote().sendString(jsonGameState);
+                    }
+                } catch (Exception _) {
+
                 }
             }
         }
@@ -304,8 +324,12 @@ public class Server {
         var loadMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, loadResponse.board());
         var gson = new Gson();
         var message = gson.toJson(loadMessage);
-        if (ctx.session.isOpen()) {
-            ctx.session.getRemote().sendString(message);
+        try {
+            if (ctx.session.isOpen()) {
+                ctx.session.getRemote().sendString(message);
+            }
+        } catch (Exception _) {
+
         }
     }
 
@@ -321,19 +345,27 @@ public class Server {
             var gson = new Gson();
             var message = gson.toJson(leaveMessage);
             for (var session : gameConnections.getAllSessions(targetID)) {
-                if (session == ctx.session) {
-                    continue;
-                }
-                if (ctx.session.isOpen()) {
-                    session.getRemote().sendString(message);
+                try {
+                    if (session == ctx.session) {
+                        continue;
+                    }
+                    if (ctx.session.isOpen()) {
+                        session.getRemote().sendString(message);
+                    }
+                } catch (Exception _) {
+
                 }
             }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
             var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
             var gson = new Gson();
-            if (ctx.session.isOpen()) {
-                ctx.session.getRemote().sendString(gson.toJson(output));
+            try {
+                if (ctx.session.isOpen()) {
+                    ctx.session.getRemote().sendString(gson.toJson(output));
+                }
+            } catch (Exception _) {
+
             }
         }
     }
@@ -349,15 +381,23 @@ public class Server {
                     highResponse.allPieces(),
                     highResponse.moves());
             var gson = new Gson();
-            if (ctx.session.isOpen()) {
-                ctx.session.getRemote().sendString(gson.toJson(highMessage));
+            try {
+                if (ctx.session.isOpen()) {
+                    ctx.session.getRemote().sendString(gson.toJson(highMessage));
+                }
+            } catch (Exception _) {
+
             }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
             var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
             var gson = new Gson();
-            if (ctx.session.isOpen()) {
-                ctx.session.getRemote().sendString(gson.toJson(output));
+            try {
+                if (ctx.session.isOpen()) {
+                    ctx.session.getRemote().sendString(gson.toJson(output));
+                }
+            } catch (Exception _) {
+
             }
         }
     }
@@ -371,11 +411,15 @@ public class Server {
             var gson = new Gson();
             var message = new NotifGameResponse(ServerMessage.ServerMessageType.NOTIFICATION, connectMessage, null);
             for (var session : gameConnections.getAllSessions(command.getGameID())) {
-                if (session == ctx.session) {
-                    continue;
-                }
-                if (ctx.session.isOpen()) {
-                    session.getRemote().sendString(gson.toJson(message));
+                try {
+                    if (session == ctx.session) {
+                        continue;
+                    }
+                    if (ctx.session.isOpen()) {
+                        session.getRemote().sendString(gson.toJson(message));
+                    }
+                } catch (Exception _) {
+
                 }
             }
     }
@@ -390,16 +434,24 @@ public class Server {
             service.resign(auth, command.getGameID().doubleValue());
             var gson = new Gson();
             for (var session : gameConnections.getAllSessions(command.getGameID())) {
-                if (ctx.session.isOpen()) {
-                    session.getRemote().sendString(gson.toJson(message));
+                try {
+                    if (ctx.session.isOpen()) {
+                        session.getRemote().sendString(gson.toJson(message));
+                    }
+                } catch (Exception _) {
+
                 }
             }
         } catch (Exception ex) {
             var errorMessage = ex.getMessage();
             var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
             var gson = new Gson();
-            if (ctx.session.isOpen()) {
-                ctx.session.getRemote().sendString(gson.toJson(output));
+            try {
+                if (ctx.session.isOpen()) {
+                    ctx.session.getRemote().sendString(gson.toJson(output));
+                }
+            } catch (Exception _) {
+
             }
         }
     }
