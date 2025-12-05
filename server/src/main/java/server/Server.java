@@ -198,15 +198,23 @@ public class Server {
     }
 
     private void baseErrorHelper(Context ctx, Exception ex) {
-        if (ex.getMessage().equals("Error: bad request")) {
-            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(400).result(message);
-        } else if (ex.getMessage().equals("Error: unauthorized")) {
-            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(401).result(message);
-        } else {
-            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-            ctx.status(500).result(message);
+        switch (ex.getMessage()) {
+            case "Error: bad request" -> {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(400).result(message);
+            }
+            case "Error: unauthorized" -> {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(401).result(message);
+            }
+            case "Error: User already exists", "Error: Forbidden" -> {
+                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+                ctx.status(403).result(message);
+            }
+            default -> {
+                String message = String.format("{\"message\": \"Error: %s\"}", ex.getMessage());
+                ctx.status(500).result(message);
+            }
         }
     }
 
@@ -230,19 +238,7 @@ public class Server {
             var joinResponse = service.join(joinRequest, auth);
             ctx.result(serializer.toJson(joinResponse));
         } catch (Exception ex) {
-            if (ex.getMessage().equals("Error: bad request")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(400).result(message);
-            } else if (ex.getMessage().equals("Error: unauthorized")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(401).result(message);
-            } else if (ex.getMessage().equals("Error: Forbidden")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(403).result(message);
-            } else {
-                String message = String.format("{\"message\": \"Error: %s\"}", ex.getMessage());
-                ctx.status(500).result(message);
-            }
+            baseErrorHelper(ctx, ex);
         }
     }
 
