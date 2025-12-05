@@ -147,12 +147,8 @@ public class MainBackground {
                     String whitePlayer = "Open";
                     String blackPlayer = "Open";
                     for (GameData game : output) {
-                        if (game.whiteUsername() != null) {
-                            whitePlayer = game.whiteUsername();
-                        }
-                        if (game.blackUsername() != null) {
-                            blackPlayer = game.blackUsername();
-                        }
+                        whitePlayer = (game.whiteUsername() == null) ? "Open" : game.whiteUsername();
+                        blackPlayer = (game.blackUsername() == null) ? "Open" : game.blackUsername();
                         System.out.printf(SET_BG_COLOR_BLUE +
                                         SET_TEXT_COLOR_RED +
                                         "Game: %d whiteUser: %s blackUser: %s GameName: %s" +
@@ -255,49 +251,15 @@ public class MainBackground {
         }
     }
 
-    public void boardPrinter(Map<String, ChessPiece> board) {
-        var bG = SET_BG_COLOR_LIGHT_GREY;
-        int startLetter = 1;
-        int endLetter = 9;
-        int startNumber = 8;
-        int endNumber = 0;
-        int directionLetter = 1;
-        int directionNumber = -1;
-        boolean white = true;
-        String letters = SET_BG_COLOR_LIGHT_GREY + "     a   b  c   d   e  f   g   h   " + SET_BG_COLOR_BLACK;
-        if (Objects.equals(playerColor, "BLACK")) {
-            startLetter = 8;
-            endLetter = 0;
-            startNumber = 1;
-            endNumber = 9;
-            directionLetter = -1;
-            directionNumber = 1;
-            white = false;
-            letters = "  h   g  f   e   d   c  b   a   " + SET_BG_COLOR_BLACK;
-        }
-        System.out.println(SET_TEXT_COLOR_BLACK + letters);
-        for (int i = startNumber; (white ? (i > endNumber) : (i < endNumber)); i += directionNumber) {
-            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " ");
-            for (int j = startLetter; (white ? (j < endLetter) : (j > endLetter)); j += directionLetter) {
-                var place = new ChessPosition(i, j);
-                if (tileColor(i, j)) {
-                    System.out.printf(SET_BG_COLOR_WHITE + help.pieceName(place, board));
-                } else {
-                    System.out.printf(SET_BG_COLOR_BLACK + help.pieceName(place, board));
-                }
-            }
-            System.out.printf(bG + " " + SET_TEXT_COLOR_BLACK + i + " " + SET_BG_COLOR_BLACK + "\n");
-        }
-        System.out.println(SET_TEXT_COLOR_BLACK + letters);
-    }
-
-    public void boardPrinterHighlight(Map<String, ChessPiece> board, Collection<ChessMove> validMoves) {
+    public void boardPrinterHighlight(Map<String, ChessPiece> board, boolean highlight, Collection<ChessMove> validMoves) {
         var bG = SET_BG_COLOR_LIGHT_GREY;
         var bWV = SET_BG_COLOR_WHITE; //This variable stands for background White Variable
         var bBV = SET_BG_COLOR_BLACK;
         Collection<ChessPosition> positions = new HashSet<>();
-        for (ChessMove move : validMoves) {
-            positions.add(move.getEndPosition());
+        if (highlight) {
+            for (ChessMove move : validMoves) {
+                positions.add(move.getEndPosition());
+            }
         }
         int startLetter = 1;
         int endLetter = 9;

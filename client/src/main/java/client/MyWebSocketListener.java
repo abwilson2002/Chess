@@ -51,7 +51,7 @@ class MyWebSocketListener implements WebSocket.Listener {
 
                 Map<String, ChessPiece> progress = gson.fromJson(allPiecesMap, type);
 
-                this.thisInstance.boardPrinter(progress);
+                this.thisInstance.boardPrinterHighlight(progress, false, null);
             }
             case ERROR, NOTIFICATION -> {
                 String message = "";
@@ -78,7 +78,7 @@ class MyWebSocketListener implements WebSocket.Listener {
 
                 Collection<ChessMove> moves = gson.fromJson(vMoves, type);
 
-                this.thisInstance.boardPrinterHighlight(progress, moves);
+                this.thisInstance.boardPrinterHighlight(progress, true, moves);
             }
         }
         return WebSocket.Listener.super.onText(webSocket, data, last);

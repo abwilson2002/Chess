@@ -144,16 +144,7 @@ public class Server {
             var regResponse = service.register(user);
             ctx.result(serializer.toJson(regResponse));
         } catch (Exception ex) {
-            if (ex.getMessage().equals("Error: bad request")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(400).result(message);
-            } else if (ex.getMessage().equals("Error: User already exists")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(403).result(message);
-            } else {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(500).result(message);
-            }
+            baseErrorHelper(ctx, ex);
         }
     }
 
@@ -165,16 +156,7 @@ public class Server {
             var loginResponse = service.login(user);
             ctx.result(serializer.toJson(loginResponse));
         } catch (Exception ex) {
-            if (ex.getMessage().equals("Error: bad request")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(400).result(message);
-            } else if (ex.getMessage().equals("Error: unauthorized")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(401).result(message);
-            } else {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(500).result(message);
-            }
+            baseErrorHelper(ctx, ex);
         }
     }
 
@@ -186,13 +168,7 @@ public class Server {
             var logoutResponse = service.logout(user);
             ctx.result(serializer.toJson(logoutResponse));
         } catch (Exception ex) {
-            if (ex.getMessage().equals("Error: unauthorized")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(401).result(message);
-            } else {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(500).result(message);
-            }
+            baseErrorHelper(ctx, ex);
         }
     }
 
@@ -204,13 +180,7 @@ public class Server {
             var listResponse = service.list(authToken);
             ctx.result(serializer.toJson(listResponse));
         } catch (Exception ex) {
-            if (ex.getMessage().equals("Error: unauthorized")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(401).result(message);
-            } else {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(500).result(message);
-            }
+            baseErrorHelper(ctx, ex);
         }
     }
 
@@ -223,16 +193,20 @@ public class Server {
             var createResponse = service.create(game.gameName(), auth);
             ctx.result(serializer.toJson(createResponse));
         } catch (Exception ex) {
-            if (ex.getMessage().equals("Error: bad request")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(400).result(message);
-            } else if (ex.getMessage().equals("Error: unauthorized")) {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(401).result(message);
-            } else {
-                String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
-                ctx.status(500).result(message);
-            }
+            baseErrorHelper(ctx, ex);
+        }
+    }
+
+    private void baseErrorHelper(Context ctx, Exception ex) {
+        if (ex.getMessage().equals("Error: bad request")) {
+            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+            ctx.status(400).result(message);
+        } else if (ex.getMessage().equals("Error: unauthorized")) {
+            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+            ctx.status(401).result(message);
+        } else {
+            String message = String.format("{\"message\": \"%s\"}", ex.getMessage());
+            ctx.status(500).result(message);
         }
     }
 
@@ -357,16 +331,7 @@ public class Server {
                 }
             }
         } catch (Exception ex) {
-            var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-            var gson = new Gson();
-            try {
-                if (ctx.session.isOpen()) {
-                    ctx.session.getRemote().sendString(gson.toJson(output));
-                }
-            } catch (Exception a) {
-
-            }
+            errorHelper(ex, ctx);
         }
     }
 
@@ -389,16 +354,7 @@ public class Server {
 
             }
         } catch (Exception ex) {
-            var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-            var gson = new Gson();
-            try {
-                if (ctx.session.isOpen()) {
-                    ctx.session.getRemote().sendString(gson.toJson(output));
-                }
-            } catch (Exception a) {
-
-            }
+            errorHelper(ex, ctx);
         }
     }
 
@@ -443,16 +399,20 @@ public class Server {
                 }
             }
         } catch (Exception ex) {
-            var errorMessage = ex.getMessage();
-            var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
-            var gson = new Gson();
-            try {
-                if (ctx.session.isOpen()) {
-                    ctx.session.getRemote().sendString(gson.toJson(output));
-                }
-            } catch (Exception a) {
+            errorHelper(ex, ctx);
+        }
+    }
 
+    private void errorHelper(Exception ex, WsMessageContext ctx) {
+        var errorMessage = ex.getMessage();
+        var output = new NotifGameResponse(ServerMessage.ServerMessageType.ERROR, null, errorMessage);
+        var gson = new Gson();
+        try {
+            if (ctx.session.isOpen()) {
+                ctx.session.getRemote().sendString(gson.toJson(output));
             }
+        } catch (Exception a) {
+
         }
     }
 

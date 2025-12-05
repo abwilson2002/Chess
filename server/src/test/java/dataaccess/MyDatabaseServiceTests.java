@@ -179,8 +179,7 @@ public class MyDatabaseServiceTests {
         try {
             var userData = userService.login(backgroundUser);
             userService.create("hello", userData.authToken());
-            var games = userService.list(userData.authToken());
-            userService.list(userData.username());
+            userService.list("crackers");
         }
         catch (Exception ex) {
             assert dataAccess.totalGames() == 1;
@@ -203,10 +202,10 @@ public class MyDatabaseServiceTests {
     @Test
     public void createFail() {
         try {
-            var userData = userService.login(backgroundUser);
-            userService.create("hello", userData.authToken());
-            var games = userService.list(userData.authToken());
-            userService.list(userData.username());
+            var userInfo = userService.login(backgroundUser);
+            userService.create("whatsUp", userInfo.authToken());
+            var games = userService.list(userInfo.authToken());
+            userService.list(userInfo.username());
         }
         catch (Exception ex) {
             assert dataAccess.totalGames() == 1;
